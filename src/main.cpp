@@ -1,7 +1,15 @@
-#include <iostream>
+#include "Game.hpp"
 
 int main()
 {
-    std::cout << "Hello World\n";
-    return 0;
+    Game game;
+
+    while(game.isRunning())
+    {
+        //Update
+        game.update();
+
+        //Render
+        game.render();
+    }
 }
