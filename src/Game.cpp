@@ -39,9 +39,24 @@ void Game::event()
         }
         else if(auto* key = event->getIf<sf::Event::KeyPressed>())
         {
-            /*if(key->scancode == sf::Keyboard::Scancode::T)
+            if(key->scancode == sf::Keyboard::Scancode::T)
             {
-            }*/
+                int mouse_X = (sf::Mouse::getPosition(*this->window).x) / 10;
+                int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / 10;
+
+                std::string element_type;
+                if(board.grid[mouse_Y][mouse_X].elementType == Board::ElementType::EMPTY) element_type = "Empty";
+                else if(board.grid[mouse_Y][mouse_X].elementType == Board::ElementType::SAND) element_type = "Sand";
+
+                std::string color;
+                if(board.grid[mouse_Y][mouse_X].color == sf::Color::Black) color = "Black";
+                else if(board.grid[mouse_Y][mouse_X].color == sf::Color::Yellow) color = "Yellow";
+
+
+
+                std::cout << "Pos X: " << mouse_X << " Pos Y " << mouse_Y << std::endl;
+                std::cout << "Element Type: " << element_type << " Color: " << color << std::endl;
+            }
         }
     }
 }

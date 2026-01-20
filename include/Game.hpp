@@ -6,6 +6,7 @@
 #include "Board.hpp"
 
 #include <iostream>
+#include <string>
 
 class Game
 {
