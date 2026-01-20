@@ -1,3 +1,5 @@
+#include <SFML/Graphics.hpp>
+
 #include <vector>
 
 class Board
@@ -11,7 +13,20 @@ private:
 
 public:
     //Variables
-    std::vector<std::vector<int>> grid;
+    enum ElementType
+    {
+        EMPTY = 0,
+        SAND = 1
+    };
+
+    struct GridCell
+    {
+        ElementType elementType;
+        sf::Color color;
+    };
+
+
+    std::vector<std::vector<GridCell>> grid;
 
 
     //Functions

@@ -39,18 +39,9 @@ void Game::event()
         }
         else if(auto* key = event->getIf<sf::Event::KeyPressed>())
         {
-            if(key->scancode == sf::Keyboard::Scancode::T)
+            /*if(key->scancode == sf::Keyboard::Scancode::T)
             {
-                for(int i = 0; i < board.grid.size(); i++)
-                {
-                    for(int j = 0; j < board.grid[i].size(); j++)
-                    {
-                        std::cout << board.grid[i][j] << " ";
-                    }
-
-                    std::cout << std::endl;
-                }
-            }
+            }*/
         }
     }
 }
@@ -70,7 +61,7 @@ void Game::boardDraw()
     {
         for(int j = 0; j < board.grid[i].size(); j++)
         {
-            if(board.grid[i][j] == 1)
+            if(board.grid[i][j].elementType == Board::ElementType::SAND)
             {
                 image.setPixel(sf::Vector2u(j, i), sf::Color::Yellow);
             }
