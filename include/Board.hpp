@@ -10,11 +10,11 @@ private:
     //Functions
 
 public:
+    //Variables
+    std::vector<std::vector<int>> grid;
 
-    std::vector<std::vector<int>> boardVector;
 
-
-    //functions
+    //Functions
     void initBoard(int w, int h);
 
 

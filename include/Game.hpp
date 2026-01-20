@@ -14,15 +14,24 @@ private:
     //Board
     Board board;
 
+    //Render
+    sf::Image image;
+    sf::Texture texture;
+    sf::Sprite* sprite;
+
+    //Window
+    sf::RenderWindow* window;
+
+
     //Variables
-        //Window
-        sf::RenderWindow* window;
 
     //Functions
-    void initVariables();
+    void initVariables(int width, int height);
     void initWindow(unsigned int width, unsigned int height);
 
     void event();
+
+    void boardDraw();
     
 public:
     //Functions
