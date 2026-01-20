@@ -3,9 +3,16 @@
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 
+#include "Board.hpp"
+
+#include <iostream>
+
 class Game
 {
 private:
+
+    //Board
+    Board board;
 
     //Variables
         //Window
@@ -13,7 +20,7 @@ private:
 
     //Functions
     void initVariables();
-    void initWindow();
+    void initWindow(unsigned int width, unsigned int height);
 
     void event();
     
@@ -25,7 +32,7 @@ public:
     const bool isRunning() const;
 
     //Constructor // Deconstructor
-    Game();
+    Game(int w = 800, int h = 600);
     virtual ~Game();
 
 };

@@ -2,7 +2,7 @@
 
 int main()
 {
-    Game game;
+    Game game(1080, 720);
 
     while(game.isRunning())
     {
