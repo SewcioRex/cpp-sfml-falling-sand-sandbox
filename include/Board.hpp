@@ -17,7 +17,7 @@ public:
     enum ElementType
     {
         EMPTY = 0,
-        SAND = 1
+        SAND
     };
 
     enum ElementState
@@ -40,8 +40,4 @@ public:
     //Functions
     void initBoard(int w, int h);
     void gridUpdate();
-
-
-    Board();
-    ~Board();
 };

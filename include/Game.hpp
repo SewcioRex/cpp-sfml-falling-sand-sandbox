@@ -29,6 +29,7 @@ private:
 
 
     //Variables
+    int brushSize;
 
     //Functions
     void initVariables(int width, int height);

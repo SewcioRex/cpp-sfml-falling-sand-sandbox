@@ -49,11 +49,3 @@ void Board::powderUpdate(int y, int x)
         std::swap(grid[y][x], grid[y + 1][x + 1]);
     }
 }
-
-Board::Board()
-{
-}
-
-Board::~Board()
-{
-}
