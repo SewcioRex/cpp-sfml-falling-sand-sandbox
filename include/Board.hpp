@@ -1,13 +1,17 @@
 #include <SFML/Graphics.hpp>
 
 #include <vector>
+#include <random>
 
 class Board
 {
 private:
 
     //Variables
-    //std::vector<std::vector<int>> boardVector;
+    std::random_device rd;
+    std::mt19937 gen;
+    std::uniform_int_distribution<> dist_1_2;
+    int random_side;
 
     //Functions
     void powderUpdate(int y, int x);

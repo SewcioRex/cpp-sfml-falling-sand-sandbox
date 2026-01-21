@@ -7,16 +7,8 @@ void Board::initBoard(int width, int height)
     //height = height / 10;
     grid = std::vector<std::vector<GridCell>>(height / 10, std::vector<GridCell>(width / 10, {ElementType::EMPTY, ElementState::NONE, sf::Color::Black}));
 
-    //Debug only
-    for(int i = 0; i <= 5; i++)
-    {
-        for(int j = grid[i].size() - 1; j >= grid[i].size() - 6; j--)
-        {
-            grid[i][j].elementType = ElementType::SAND;
-            grid[i][j].state = ElementState::POWDER;
-            grid[i][j].color = sf::Color::Yellow;
-        }
-    }
+    gen = std::mt19937(rd());
+    dist_1_2 = std::uniform_int_distribution<>(1, 2);
 }
 
 
@@ -40,12 +32,17 @@ void Board::powderUpdate(int y, int x)
     {
         std::swap(grid[y][x], grid[y + 1][x]);
     }
-    else if(x - 1 >= 0 && grid[y + 1][x - 1].elementType == ElementType::EMPTY)
+    else
     {
-        std::swap(grid[y][x], grid[y + 1][x - 1]);
-    }
-    else if(x + 1 < grid[y].size() && grid[y + 1][x + 1].elementType == ElementType::EMPTY)
-    {
-        std::swap(grid[y][x], grid[y + 1][x + 1]);
+        random_side = dist_1_2(gen);
+
+        if(random_side == 1 && x - 1 >= 0 && grid[y + 1][x - 1].elementType == ElementType::EMPTY)
+        {
+            std::swap(grid[y][x], grid[y + 1][x - 1]);
+        }
+        else if(x + 1 < grid[y].size() && grid[y + 1][x + 1].elementType == ElementType::EMPTY)
+        {
+            std::swap(grid[y][x], grid[y + 1][x + 1]);
+        }
     }
 }
