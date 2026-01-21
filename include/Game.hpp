@@ -20,6 +20,10 @@ private:
     sf::Texture texture;
     sf::Sprite* sprite;
 
+    sf::Clock clock;
+    float timer;
+    float dt;
+
     //Window
     sf::RenderWindow* window;
 

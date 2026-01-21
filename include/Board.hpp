@@ -10,6 +10,7 @@ private:
     //std::vector<std::vector<int>> boardVector;
 
     //Functions
+    void powderUpdate(int y, int x);
 
 public:
     //Variables
@@ -19,9 +20,16 @@ public:
         SAND = 1
     };
 
+    enum ElementState
+    {
+        NONE = 0,
+        POWDER
+    };
+
     struct GridCell
     {
         ElementType elementType;
+        ElementState state;
         sf::Color color;
     };
 
@@ -31,6 +39,7 @@ public:
 
     //Functions
     void initBoard(int w, int h);
+    void gridUpdate();
 
 
     Board();

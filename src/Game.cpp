@@ -7,6 +7,8 @@ void Game::initVariables(int width, int height)
 
     image.resize(sf::Vector2u(width / 10, height / 10));
 
+    timer = 0.f;
+
     if(!texture.resize(sf::Vector2u(width / 10, height / 10))) std::cout << "Error: Texture error\n";
     
     this->sprite = new sf::Sprite(texture);
@@ -27,6 +29,17 @@ const bool Game::isRunning() const
 void Game::update()
 {
     event();
+
+    dt = clock.restart().asSeconds();
+    timer += dt;
+
+    if(timer >= 0.05f)
+    {
+        board.gridUpdate();
+        timer = 0.f;
+    }
+    
+    
 }
 
 void Game::event()
@@ -76,11 +89,7 @@ void Game::boardDraw()
     {
         for(int j = 0; j < board.grid[i].size(); j++)
         {
-            if(board.grid[i][j].elementType == Board::ElementType::SAND)
-            {
-                image.setPixel(sf::Vector2u(j, i), sf::Color::Yellow);
-            }
-            else image.setPixel(sf::Vector2u(j, i), sf::Color::Black);
+            image.setPixel(sf::Vector2u(j, i), board.grid[i][j].color);
         }
     }
 
