@@ -29,7 +29,9 @@ private:
 
 
     //Variables
-    int brushSize;
+    int brush_size;
+    int tool;
+    bool mouse_left_hold;
 
     //Functions
     void initVariables(int width, int height);

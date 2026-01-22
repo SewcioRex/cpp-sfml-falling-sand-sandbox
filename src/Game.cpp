@@ -5,15 +5,17 @@ void Game::initVariables(int width, int height)
     this->window = nullptr;
     this->sprite = nullptr;
 
-    image.resize(sf::Vector2u(width / 10, height / 10));
+    image.resize(sf::Vector2u(width / 5, height / 5));
 
     timer = 0.f;
-    brushSize = 1;
+    brush_size = 1;
+    tool = 0;
+    mouse_left_hold = false;
 
-    if(!texture.resize(sf::Vector2u(width / 10, height / 10))) std::cout << "Error: Texture error\n";
+    if(!texture.resize(sf::Vector2u(width / 5, height / 5))) std::cout << "Error: Texture error\n";
     
     this->sprite = new sf::Sprite(texture);
-    this->sprite->setScale(sf::Vector2f(10.f, 10.f));
+    this->sprite->setScale(sf::Vector2f(5.f, 5.f));
 
 }
 
@@ -34,9 +36,18 @@ void Game::update()
     dt = clock.restart().asSeconds();
     timer += dt;
 
-    if(timer >= 0.05f)
+    if(timer >= 0.03f)
     {
         board.gridUpdate();
+
+        if(mouse_left_hold)
+        {
+            int mouse_X = (sf::Mouse::getPosition(*this->window).x) / 5;
+            int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / 5;
+
+            board.brushTool(mouse_Y, mouse_X, brush_size, tool);
+        }
+
         timer = 0.f;
     }
     
@@ -55,8 +66,8 @@ void Game::event()
         {
             if(key->scancode == sf::Keyboard::Scancode::T)
             {
-                int mouse_X = (sf::Mouse::getPosition(*this->window).x) / 10;
-                int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / 10;
+                int mouse_X = (sf::Mouse::getPosition(*this->window).x) / 5;
+                int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / 5;
 
                 std::string element_type;
                 if(board.grid[mouse_Y][mouse_X].elementType == Board::ElementType::EMPTY) element_type = "Empty";
@@ -69,32 +80,36 @@ void Game::event()
                 std::cout << "Pos X: " << mouse_X << " Pos Y " << mouse_Y << std::endl;
                 std::cout << "Element Type: " << element_type << std::endl << " Color: " << color << std::endl;
             }
+            else if(key->scancode == sf::Keyboard::Scancode::Num0)
+            {
+                tool = 0;
+            }
+            else if(key->scancode == sf::Keyboard::Scancode::Num1)
+            {
+                tool = 1;
+            }
+            
         }
         else if(auto* key = event->getIf<sf::Event::MouseButtonPressed>())
         {
             if(key->button == sf::Mouse::Button::Left)
             {
-                int mouse_X = (sf::Mouse::getPosition(*this->window).x) / 10;
-                int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / 10;
-
-                for(int i = -brushSize / 2; i <= brushSize / 2; i++)
-                {
-                    for(int j = -brushSize / 2; j <= brushSize / 2; j++)
-                    {
-                        if((mouse_Y + i >= 0 && mouse_Y + i < board.grid.size()) && (mouse_X + j >= 0 && mouse_X + j < board.grid[mouse_Y].size()))
-                        {
-                            board.grid[mouse_Y + i][mouse_X + j] = {Board::ElementType::SAND, Board::ElementState::POWDER, sf::Color::Yellow};
-                        }
-                    }
-                }
+                if(!mouse_left_hold) mouse_left_hold = true;
+            }
+        }
+        else if(auto* key = event->getIf<sf::Event::MouseButtonReleased>())
+        {
+            if(key->button == sf::Mouse::Button::Left)
+            {
+                if(mouse_left_hold) mouse_left_hold = false;
             }
         }
         else if(auto* mouse = event->getIf<sf::Event::MouseWheelScrolled>())
         {
-            if(mouse->delta > 0 && brushSize < 5) brushSize += 2;
-            else if(mouse->delta < 0 && brushSize > 1) brushSize -= 2;
+            if(mouse->delta > 0 && brush_size < 7) brush_size += 2;
+            else if(mouse->delta < 0 && brush_size > 1) brush_size -= 2;
 
-            std::cout << "Brush Size: " << brushSize << std::endl;
+            std::cout << "Brush Size: " << brush_size << std::endl;
         }
     }
 }

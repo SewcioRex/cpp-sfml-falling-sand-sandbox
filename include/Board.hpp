@@ -11,6 +11,7 @@ private:
     std::random_device rd;
     std::mt19937 gen;
     std::uniform_int_distribution<> dist_1_2;
+    std::uniform_int_distribution<> dist_1_4;
     int random_side;
 
     //Functions
@@ -44,4 +45,5 @@ public:
     //Functions
     void initBoard(int w, int h);
     void gridUpdate();
+    void brushTool(int y, int x, int brush_size, int tool);
 };
