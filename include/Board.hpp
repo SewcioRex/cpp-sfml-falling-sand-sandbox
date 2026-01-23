@@ -40,6 +40,8 @@ public:
 
 
     std::vector<std::vector<GridCell>> grid;
+    std::vector<std::vector<GridCell>> read_grid;
+    std::vector<std::vector<GridCell>> template_grid;
 
 
     //Functions

@@ -33,6 +33,8 @@ private:
     int tool;
     bool mouse_left_hold;
 
+    int scale;
+
     //Functions
     void initVariables(int width, int height);
     void initWindow(unsigned int width, unsigned int height);

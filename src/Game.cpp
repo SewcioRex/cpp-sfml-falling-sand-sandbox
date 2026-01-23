@@ -5,17 +5,19 @@ void Game::initVariables(int width, int height)
     this->window = nullptr;
     this->sprite = nullptr;
 
-    image.resize(sf::Vector2u(width / 5, height / 5));
+    scale = 5;
+
+    image.resize(sf::Vector2u(width / scale, height / scale));
 
     timer = 0.f;
     brush_size = 1;
     tool = 0;
     mouse_left_hold = false;
 
-    if(!texture.resize(sf::Vector2u(width / 5, height / 5))) std::cout << "Error: Texture error\n";
+    if(!texture.resize(sf::Vector2u(width / scale, height / scale))) std::cout << "Error: Texture error\n";
     
     this->sprite = new sf::Sprite(texture);
-    this->sprite->setScale(sf::Vector2f(5.f, 5.f));
+    this->sprite->setScale(sf::Vector2f(scale, scale));
 
 }
 
@@ -36,14 +38,14 @@ void Game::update()
     dt = clock.restart().asSeconds();
     timer += dt;
 
-    if(timer >= 0.03f)
+    if(timer >= 0.001f)
     {
         board.gridUpdate();
 
         if(mouse_left_hold)
         {
-            int mouse_X = (sf::Mouse::getPosition(*this->window).x) / 5;
-            int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / 5;
+            int mouse_X = (sf::Mouse::getPosition(*this->window).x) / scale;
+            int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / scale;
 
             board.brushTool(mouse_Y, mouse_X, brush_size, tool);
         }
@@ -66,8 +68,8 @@ void Game::event()
         {
             if(key->scancode == sf::Keyboard::Scancode::T)
             {
-                int mouse_X = (sf::Mouse::getPosition(*this->window).x) / 5;
-                int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / 5;
+                int mouse_X = (sf::Mouse::getPosition(*this->window).x) / scale;
+                int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / scale;
 
                 std::string element_type;
                 if(board.grid[mouse_Y][mouse_X].elementType == Board::ElementType::EMPTY) element_type = "Empty";
@@ -106,7 +108,7 @@ void Game::event()
         }
         else if(auto* mouse = event->getIf<sf::Event::MouseWheelScrolled>())
         {
-            if(mouse->delta > 0 && brush_size < 7) brush_size += 2;
+            if(mouse->delta > 0 && brush_size < 21) brush_size += 2;
             else if(mouse->delta < 0 && brush_size > 1) brush_size -= 2;
 
             std::cout << "Brush Size: " << brush_size << std::endl;
@@ -146,7 +148,7 @@ Game::Game(int width, int height)
     this->initVariables(width, height);
     this->initWindow(width, height);
 
-    board.initBoard(width, height);
+    board.initBoard(width / scale, height / scale);
 }
 
 Game::~Game()

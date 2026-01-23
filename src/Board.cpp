@@ -5,7 +5,9 @@ void Board::initBoard(int width, int height)
 {
     //width = width / 10;
     //height = height / 10;
-    grid = std::vector<std::vector<GridCell>>(height / 5, std::vector<GridCell>(width / 5, {ElementType::EMPTY, ElementState::NONE, sf::Color::Black}));
+    grid = std::vector<std::vector<GridCell>>(height, std::vector<GridCell>(width, {ElementType::EMPTY, ElementState::NONE, sf::Color::Black}));
+    template_grid = grid;
+    read_grid = grid;
 
     gen = std::mt19937(rd());
     dist_1_2 = std::uniform_int_distribution<>(1, 2);
@@ -15,35 +17,51 @@ void Board::initBoard(int width, int height)
 
 void Board::gridUpdate()
 {
+    read_grid = template_grid;
+
     for(int i = grid.size() - 1; i >= 0; i--)
     {
         for(int j = grid[i].size() - 1; j >= 0; j--)
         {
-            if(i + 1 < grid.size() && grid[i][j].state == ElementState::POWDER)
+            if(grid[i][j].state == ElementState::POWDER)
             {
                 powderUpdate(i, j);
             }
 
         }
     }
+
+    std::swap(grid, read_grid);
 }
 void Board::powderUpdate(int y, int x)
 {
-    if(grid[y + 1][x].elementType == ElementType::EMPTY)
+    if(y + 1 < grid.size() && grid[y + 1][x].elementType == ElementType::EMPTY)
     {
-        std::swap(grid[y][x], grid[y + 1][x]);
+        read_grid[y + 1][x] = grid[y][x];
     }
     else
     {
-        random_side = dist_1_2(gen);
+        bool can_left = (y + 1 < grid.size() && x - 1 >= 0 && grid[y + 1][x - 1].elementType == ElementType::EMPTY);
 
-        if(random_side == 1 && x - 1 >= 0 && grid[y + 1][x - 1].elementType == ElementType::EMPTY)
+        bool can_right = (y + 1 < grid.size() && x + 1 < grid[y].size() && grid[y + 1][x + 1].elementType == ElementType::EMPTY);
+
+        if(can_left && can_right) random_side = dist_1_2(gen);
+        else if(can_left && !can_right) random_side = 1;
+        else if(!can_left && can_right) random_side = 2;
+        else random_side = 0;
+
+
+        if(random_side == 1)
         {
-            std::swap(grid[y][x], grid[y + 1][x - 1]);
+            read_grid[y + 1][x - 1] = grid[y][x];
         }
-        else if(random_side == 2 && x + 1 < grid[y].size() && grid[y + 1][x + 1].elementType == ElementType::EMPTY)
+        else if(random_side == 2)
         {
-            std::swap(grid[y][x], grid[y + 1][x + 1]);
+            read_grid[y + 1][x + 1] = grid[y][x];
+        }
+        else
+        {
+            read_grid[y][x] = grid[y][x];
         }
     }
 }
@@ -63,6 +81,7 @@ void Board::brushTool(int y, int x, int brush_size, int tool)
                     if(tool == 0) grid[y + i][x + j] = {ElementType::EMPTY, ElementState::NONE, sf::Color::Black};
                     else if(tool == 1) grid[y + i][x + j] = {ElementType::SAND, ElementState::POWDER, sf::Color::Yellow};
                 }
+
             }
         }
     }
