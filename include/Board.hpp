@@ -11,8 +11,13 @@ private:
     std::random_device rd;
     std::mt19937 gen;
     std::uniform_int_distribution<> dist_1_2;
-    std::uniform_int_distribution<> dist_1_4;
+    std::uniform_int_distribution<> dist_1_40;
     int random_side;
+
+    int side;
+
+    int max_grid_H;
+    int max_grid_W;
 
     //Functions
     void powderUpdate(int y, int x);
@@ -36,12 +41,12 @@ public:
         ElementType elementType;
         ElementState state;
         sf::Color color;
+        int density;
+        bool updated;
     };
 
 
     std::vector<std::vector<GridCell>> grid;
-    std::vector<std::vector<GridCell>> read_grid;
-    std::vector<std::vector<GridCell>> template_grid;
 
 
     //Functions

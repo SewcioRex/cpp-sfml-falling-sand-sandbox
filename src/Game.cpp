@@ -5,7 +5,7 @@ void Game::initVariables(int width, int height)
     this->window = nullptr;
     this->sprite = nullptr;
 
-    scale = 5;
+    scale = 2;
 
     image.resize(sf::Vector2u(width / scale, height / scale));
 
@@ -34,24 +34,26 @@ const bool Game::isRunning() const
 void Game::update()
 {
     event();
+    
+    board.gridUpdate();
 
-    dt = clock.restart().asSeconds();
+    if(mouse_left_hold)
+    {
+        int mouse_X = (sf::Mouse::getPosition(*this->window).x) / scale;
+        int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / scale;
+
+        board.brushTool(mouse_Y, mouse_X, brush_size, tool);
+    }
+
+    /*dt = clock.restart().asSeconds();
     timer += dt;
 
     if(timer >= 0.001f)
     {
-        board.gridUpdate();
-
-        if(mouse_left_hold)
-        {
-            int mouse_X = (sf::Mouse::getPosition(*this->window).x) / scale;
-            int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / scale;
-
-            board.brushTool(mouse_Y, mouse_X, brush_size, tool);
-        }
+        
 
         timer = 0.f;
-    }
+    }*/
     
     
 }
@@ -79,8 +81,9 @@ void Game::event()
                 if(board.grid[mouse_Y][mouse_X].color == sf::Color::Black) color = "Black";
                 else if(board.grid[mouse_Y][mouse_X].color == sf::Color::Yellow) color = "Yellow";
 
+
                 std::cout << "Pos X: " << mouse_X << " Pos Y " << mouse_Y << std::endl;
-                std::cout << "Element Type: " << element_type << std::endl << " Color: " << color << std::endl;
+                std::cout << "Element Type: " << element_type << std::endl << "Color: " << color << std::endl << "Updated: " << board.grid[mouse_Y][mouse_X].updated << std::endl;
             }
             else if(key->scancode == sf::Keyboard::Scancode::Num0)
             {

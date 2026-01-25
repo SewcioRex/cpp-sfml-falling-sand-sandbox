@@ -3,65 +3,90 @@
 
 void Board::initBoard(int width, int height)
 {
-    //width = width / 10;
-    //height = height / 10;
-    grid = std::vector<std::vector<GridCell>>(height, std::vector<GridCell>(width, {ElementType::EMPTY, ElementState::NONE, sf::Color::Black}));
-    template_grid = grid;
-    read_grid = grid;
+    grid = std::vector<std::vector<GridCell>>(height, std::vector<GridCell>(width, {ElementType::EMPTY, ElementState::NONE, sf::Color::Black, 0, false}));
+
+    max_grid_H = grid.size();
+    max_grid_W = grid[0].size();
 
     gen = std::mt19937(rd());
     dist_1_2 = std::uniform_int_distribution<>(1, 2);
-    dist_1_4 = std::uniform_int_distribution<>(1, 4);
+    dist_1_40 = std::uniform_int_distribution<>(1, 40);
+
+    side = 1;
 }
 
 
 void Board::gridUpdate()
 {
-    read_grid = template_grid;
-
-    for(int i = grid.size() - 1; i >= 0; i--)
+    for(auto& row : grid)
     {
-        for(int j = grid[i].size() - 1; j >= 0; j--)
+        for(auto& cell : row)
         {
-            if(grid[i][j].state == ElementState::POWDER)
-            {
-                powderUpdate(i, j);
-            }
-
+            cell.updated = false;
         }
     }
 
-    std::swap(grid, read_grid);
+
+    if(side == 1)
+    {
+        for (int i = max_grid_H - 1; i >= 0; i--)
+        {
+            for (int j = max_grid_W - 1; j >= 0; j--)
+            {
+                if (grid[i][j].state == ElementState::POWDER)
+                {
+                    powderUpdate(i, j);
+                }
+            }
+        }
+
+        side = 2;
+    }
+    else if(side == 2)
+    {
+        for (int i = max_grid_H - 1; i >= 0; i--)
+        {
+            for (int j = 0; j < max_grid_W; j++)
+            {
+                if (grid[i][j].state == ElementState::POWDER)
+                {
+                    powderUpdate(i, j);
+                }
+            }
+        }
+
+        side = 1;
+    }
 }
 void Board::powderUpdate(int y, int x)
 {
-    if(y + 1 < grid.size() && grid[y + 1][x].elementType == ElementType::EMPTY)
+    if(grid[y][x].updated) return;
+
+    if(y + 1 < max_grid_H && grid[y + 1][x].density < grid[y][x].density && !grid[y + 1][x].updated)
     {
-        read_grid[y + 1][x] = grid[y][x];
+        std::swap(grid[y + 1][x], grid[y][x]);
+        grid[y + 1][x].updated = true;
     }
     else
     {
-        bool can_left = (y + 1 < grid.size() && x - 1 >= 0 && grid[y + 1][x - 1].elementType == ElementType::EMPTY);
+        bool can_left = (y + 1 < max_grid_H && x - 1 >= 0 && grid[y + 1][x - 1].density < grid[y][x].density && !grid[y + 1][x - 1].updated);
 
-        bool can_right = (y + 1 < grid.size() && x + 1 < grid[y].size() && grid[y + 1][x + 1].elementType == ElementType::EMPTY);
+        bool can_right = (y + 1 < max_grid_H && x + 1 < max_grid_W && grid[y + 1][x + 1].density < grid[y][x].density && !grid[y + 1][x + 1].updated);
 
         if(can_left && can_right) random_side = dist_1_2(gen);
         else if(can_left && !can_right) random_side = 1;
         else if(!can_left && can_right) random_side = 2;
         else random_side = 0;
 
-
         if(random_side == 1)
         {
-            read_grid[y + 1][x - 1] = grid[y][x];
+            std::swap(grid[y + 1][x - 1], grid[y][x]);
+            grid[y + 1][x - 1].updated = true;
         }
         else if(random_side == 2)
         {
-            read_grid[y + 1][x + 1] = grid[y][x];
-        }
-        else
-        {
-            read_grid[y][x] = grid[y][x];
+            std::swap(grid[y + 1][x + 1], grid[y][x]);
+            grid[y + 1][x + 1].updated = true;
         }
     }
 }
@@ -74,12 +99,12 @@ void Board::brushTool(int y, int x, int brush_size, int tool)
         {
             if ((y + i >= 0 && y + i < grid.size()) && (x + j >= 0 && x + j < grid[y].size()))
             {
-                int random = dist_1_4(gen);
+                int random = dist_1_40(gen);
 
                 if(brush_size == 1 || random == 1)
                 {
-                    if(tool == 0) grid[y + i][x + j] = {ElementType::EMPTY, ElementState::NONE, sf::Color::Black};
-                    else if(tool == 1) grid[y + i][x + j] = {ElementType::SAND, ElementState::POWDER, sf::Color::Yellow};
+                    if(tool == 0) grid[y + i][x + j] = {ElementType::EMPTY, ElementState::NONE, sf::Color::Black, 0, false};
+                    else if(tool == 1) grid[y + i][x + j] = {ElementType::SAND, ElementState::POWDER, sf::Color::Yellow, 10, false};
                 }
 
             }
