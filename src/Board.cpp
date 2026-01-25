@@ -88,6 +88,7 @@ void Board::powderUpdate(int y, int x)
             std::swap(grid[y + 1][x + 1], grid[y][x]);
             grid[y + 1][x + 1].updated = true;
         }
+        else return;
     }
 }
 
@@ -101,7 +102,7 @@ void Board::brushTool(int y, int x, int brush_size, int tool)
             {
                 int random = dist_1_40(gen);
 
-                if(brush_size == 1 || random == 1)
+                if(random == 1)
                 {
                     if(tool == 0) grid[y + i][x + j] = {ElementType::EMPTY, ElementState::NONE, sf::Color::Black, 0, false};
                     else if(tool == 1) grid[y + i][x + j] = {ElementType::SAND, ElementState::POWDER, sf::Color::Yellow, 10, false};
@@ -110,4 +111,9 @@ void Board::brushTool(int y, int x, int brush_size, int tool)
             }
         }
     }
+}
+
+void Board::clearBoard()
+{
+    grid = std::vector<std::vector<GridCell>>(max_grid_H, std::vector<GridCell>(max_grid_W, {ElementType::EMPTY, ElementState::NONE, sf::Color::Black, 0, false}));
 }

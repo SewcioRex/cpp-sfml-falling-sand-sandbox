@@ -27,7 +27,7 @@ public:
     enum ElementType
     {
         EMPTY = 0,
-        SAND
+        SAND,
     };
 
     enum ElementState
@@ -53,4 +53,5 @@ public:
     void initBoard(int w, int h);
     void gridUpdate();
     void brushTool(int y, int x, int brush_size, int tool);
+    void clearBoard();
 };

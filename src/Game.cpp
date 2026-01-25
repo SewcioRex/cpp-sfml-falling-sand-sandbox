@@ -10,7 +10,7 @@ void Game::initVariables(int width, int height)
     image.resize(sf::Vector2u(width / scale, height / scale));
 
     timer = 0.f;
-    brush_size = 1;
+    brush_size = 3;
     tool = 0;
     mouse_left_hold = false;
 
@@ -93,7 +93,14 @@ void Game::event()
             {
                 tool = 1;
             }
-            
+            else if(key->scancode == sf::Keyboard::Scancode::Num2)
+            {
+                tool = 2;
+            }
+            else if(key->scancode == sf::Keyboard::Scancode::Delete)
+            {
+                board.clearBoard();
+            }              
         }
         else if(auto* key = event->getIf<sf::Event::MouseButtonPressed>())
         {
@@ -112,7 +119,7 @@ void Game::event()
         else if(auto* mouse = event->getIf<sf::Event::MouseWheelScrolled>())
         {
             if(mouse->delta > 0 && brush_size < 21) brush_size += 2;
-            else if(mouse->delta < 0 && brush_size > 1) brush_size -= 2;
+            else if(mouse->delta < 0 && brush_size > 3) brush_size -= 2;
 
             std::cout << "Brush Size: " << brush_size << std::endl;
         }
