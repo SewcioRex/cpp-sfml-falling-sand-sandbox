@@ -15,14 +15,13 @@ private:
     //Board
     Board board;
 
+    sf::Clock clock;
+    float dt;
+
     //Render
     sf::Image image;
     sf::Texture texture;
     sf::Sprite* sprite;
-
-    sf::Clock clock;
-    float timer;
-    float dt;
 
     //Window
     sf::RenderWindow* window;

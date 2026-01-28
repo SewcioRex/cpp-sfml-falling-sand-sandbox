@@ -1,11 +1,18 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
+#include <SFML/System.hpp>
+#include <SFML/Window.hpp>
 
 #include <vector>
 #include <random>
+#include <iostream>
 
 class Board
 {
 private:
+
+    const float GRAVITY_FORCE = 10.f;
+    const float  MAX_FALL_SPEED = 10.f;
 
     //Variables
     std::random_device rd;
@@ -14,13 +21,17 @@ private:
     std::uniform_int_distribution<> dist_1_40;
     int random_side;
 
+    sf::Clock clock;
+
     int side;
 
     int max_grid_H;
     int max_grid_W;
 
     //Functions
-    void powderUpdate(int y, int x);
+    void gravity(int y, int x, float dt);
+
+    //void powderUpdate(int y, int x, float dt);
 
 public:
     //Variables
@@ -28,12 +39,14 @@ public:
     {
         EMPTY = 0,
         SAND,
+        WATER,
     };
 
     enum ElementState
     {
         NONE = 0,
-        POWDER
+        POWDER,
+        LIQUID
     };
 
     struct GridCell
@@ -42,7 +55,8 @@ public:
         ElementState state;
         sf::Color color;
         int density;
-        bool updated;
+        sf::Vector2f velocity;
+        bool has_been_updated;
     };
 
 
@@ -51,7 +65,7 @@ public:
 
     //Functions
     void initBoard(int w, int h);
-    void gridUpdate();
+    void gridUpdate(float dt);
     void brushTool(int y, int x, int brush_size, int tool);
     void clearBoard();
 };

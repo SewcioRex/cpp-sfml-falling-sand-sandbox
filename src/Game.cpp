@@ -9,7 +9,6 @@ void Game::initVariables(int width, int height)
 
     image.resize(sf::Vector2u(width / scale, height / scale));
 
-    timer = 0.f;
     brush_size = 3;
     tool = 0;
     mouse_left_hold = false;
@@ -35,7 +34,9 @@ void Game::update()
 {
     event();
     
-    board.gridUpdate();
+    dt = clock.restart().asSeconds();
+
+    board.gridUpdate(dt);
 
     if(mouse_left_hold)
     {
@@ -73,17 +74,21 @@ void Game::event()
                 int mouse_X = (sf::Mouse::getPosition(*this->window).x) / scale;
                 int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / scale;
 
-                std::string element_type;
+                /*/std::string element_type;
                 if(board.grid[mouse_Y][mouse_X].elementType == Board::ElementType::EMPTY) element_type = "Empty";
                 else if(board.grid[mouse_Y][mouse_X].elementType == Board::ElementType::SAND) element_type = "Sand";
 
                 std::string color;
                 if(board.grid[mouse_Y][mouse_X].color == sf::Color::Black) color = "Black";
-                else if(board.grid[mouse_Y][mouse_X].color == sf::Color::Yellow) color = "Yellow";
+                else if(board.grid[mouse_Y][mouse_X].color == sf::Color::Yellow) color = "Yellow";*/
 
 
-                std::cout << "Pos X: " << mouse_X << " Pos Y " << mouse_Y << std::endl;
-                std::cout << "Element Type: " << element_type << std::endl << "Color: " << color << std::endl << "Updated: " << board.grid[mouse_Y][mouse_X].updated << std::endl;
+                //std::cout << "Pos X: " << mouse_X << " Pos Y " << mouse_Y << std::endl;
+                //std::cout << "Element Type: " << element_type << std::endl << "Color: " << color << std::endl
+                //std::cout << "Updated: " << board.grid[mouse_Y][mouse_X].has_been_updated << std::endl;
+
+                //std::cout << "Velocity Y: " << board.grid[mouse_Y][mouse_X].velocity.y << "\n";
+                //std::cout << "Velocity X: " << board.grid[mouse_Y][mouse_X].velocity.x << "\n";
             }
             else if(key->scancode == sf::Keyboard::Scancode::Num0)
             {
@@ -118,8 +123,8 @@ void Game::event()
         }
         else if(auto* mouse = event->getIf<sf::Event::MouseWheelScrolled>())
         {
-            if(mouse->delta > 0 && brush_size < 21) brush_size += 2;
-            else if(mouse->delta < 0 && brush_size > 3) brush_size -= 2;
+            if(mouse->delta > 0 && brush_size < 101) brush_size += 2;
+            else if(mouse->delta < 0 && brush_size > 1) brush_size -= 2;
 
             std::cout << "Brush Size: " << brush_size << std::endl;
         }

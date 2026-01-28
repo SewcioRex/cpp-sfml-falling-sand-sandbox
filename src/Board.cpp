@@ -3,26 +3,26 @@
 
 void Board::initBoard(int width, int height)
 {
-    grid = std::vector<std::vector<GridCell>>(height, std::vector<GridCell>(width, {ElementType::EMPTY, ElementState::NONE, sf::Color::Black, 0, false}));
+    grid = std::vector<std::vector<GridCell>>(height, std::vector<GridCell>(width, {ElementType::EMPTY, ElementState::NONE, sf::Color::Black, 0, {0, 0}, false}));
 
     max_grid_H = grid.size();
     max_grid_W = grid[0].size();
 
     gen = std::mt19937(rd());
     dist_1_2 = std::uniform_int_distribution<>(1, 2);
-    dist_1_40 = std::uniform_int_distribution<>(1, 40);
+    dist_1_40 = std::uniform_int_distribution<>(1, 100);
 
     side = 1;
 }
 
 
-void Board::gridUpdate()
+void Board::gridUpdate(float dt)
 {
     for(auto& row : grid)
     {
         for(auto& cell : row)
         {
-            cell.updated = false;
+            cell.has_been_updated = false;
         }
     }
 
@@ -33,9 +33,9 @@ void Board::gridUpdate()
         {
             for (int j = max_grid_W - 1; j >= 0; j--)
             {
-                if (grid[i][j].state == ElementState::POWDER)
+                if (grid[i][j].state == ElementState::POWDER || grid[i][j].state == ElementState::LIQUID)
                 {
-                    powderUpdate(i, j);
+                    gravity(i, j, dt);
                 }
             }
         }
@@ -48,9 +48,9 @@ void Board::gridUpdate()
         {
             for (int j = 0; j < max_grid_W; j++)
             {
-                if (grid[i][j].state == ElementState::POWDER)
+                if (grid[i][j].state == ElementState::POWDER || grid[i][j].state == ElementState::LIQUID)
                 {
-                    powderUpdate(i, j);
+                    gravity(i, j, dt);
                 }
             }
         }
@@ -58,37 +58,53 @@ void Board::gridUpdate()
         side = 1;
     }
 }
-void Board::powderUpdate(int y, int x)
+
+void Board::gravity(int y, int x, float dt)
 {
-    if(grid[y][x].updated) return;
+    //if updated stop function
+    if(grid[y][x].has_been_updated) return;
 
-    if(y + 1 < max_grid_H && grid[y + 1][x].density < grid[y][x].density && !grid[y + 1][x].updated)
+    grid[y][x].velocity.y += GRAVITY_FORCE * dt;
+    if(grid[y][x].velocity.y > MAX_FALL_SPEED) grid[y][x].velocity.y = MAX_FALL_SPEED;
+
+    int vy = y, vx = x;
+    
+    int steps = static_cast<int>(grid[y][x].velocity.y);
+
+    for(int s = 0; s < steps; s++)
     {
-        std::swap(grid[y + 1][x], grid[y][x]);
-        grid[y + 1][x].updated = true;
+        if(vy + 1 < max_grid_H && grid[vy + 1][vx].density < grid[vy][vx].density && !grid[vy + 1][vx].has_been_updated)
+        {
+            std::swap(grid[vy + 1][vx], grid[vy][vx]);
+            vy++;
+        }
+        else
+        {
+            bool can_left = (vy + 1 < max_grid_H && vx - 1 >= 0 && grid[vy + 1][vx - 1].density < grid[vy][vx].density && !grid[vy + 1 ][vx - 1].has_been_updated);
+
+            bool can_right = (vy + 1 < max_grid_H && vx + 1 < max_grid_W && grid[vy + 1][vx + 1].density < grid[vy][vx].density && !grid[vy + 1][vx + 1].has_been_updated);
+
+            if (can_left || can_right)
+            {
+                int dir;
+                if (can_left && can_right) dir = dist_1_2(gen);
+                else dir = can_left ? -1 : 1;
+
+                std::swap(grid[vy+1][vx+dir], grid[vy][vx]);
+                vy++;
+                vx += dir;
+            }
+            else
+            {
+                grid[y][x].velocity.y = 1.f;
+                break;
+            }
+        }
     }
-    else
+
+    if(y != vy && x != vx)
     {
-        bool can_left = (y + 1 < max_grid_H && x - 1 >= 0 && grid[y + 1][x - 1].density < grid[y][x].density && !grid[y + 1][x - 1].updated);
-
-        bool can_right = (y + 1 < max_grid_H && x + 1 < max_grid_W && grid[y + 1][x + 1].density < grid[y][x].density && !grid[y + 1][x + 1].updated);
-
-        if(can_left && can_right) random_side = dist_1_2(gen);
-        else if(can_left && !can_right) random_side = 1;
-        else if(!can_left && can_right) random_side = 2;
-        else random_side = 0;
-
-        if(random_side == 1)
-        {
-            std::swap(grid[y + 1][x - 1], grid[y][x]);
-            grid[y + 1][x - 1].updated = true;
-        }
-        else if(random_side == 2)
-        {
-            std::swap(grid[y + 1][x + 1], grid[y][x]);
-            grid[y + 1][x + 1].updated = true;
-        }
-        else return;
+        grid[vy][vx].has_been_updated = true;
     }
 }
 
@@ -102,11 +118,14 @@ void Board::brushTool(int y, int x, int brush_size, int tool)
             {
                 int random = dist_1_40(gen);
 
+                if(tool == 0) grid[y + i][x + j] = {ElementType::EMPTY, ElementState::NONE, sf::Color::Black, 0, {0, 0}, false};
+
                 if(random == 1)
                 {
-                    if(tool == 0) grid[y + i][x + j] = {ElementType::EMPTY, ElementState::NONE, sf::Color::Black, 0, false};
-                    else if(tool == 1) grid[y + i][x + j] = {ElementType::SAND, ElementState::POWDER, sf::Color::Yellow, 10, false};
+                    if(tool == 1) grid[y + i][x + j] = {ElementType::SAND, ElementState::POWDER, sf::Color::Yellow, 10, {0, 1}, false};
+                    else if(tool == 2) grid[y + i][x + j] = {ElementType::SAND, ElementState::POWDER, sf::Color::Blue, 5, {0, 1}, false};
                 }
+                    
 
             }
         }
@@ -115,5 +134,5 @@ void Board::brushTool(int y, int x, int brush_size, int tool)
 
 void Board::clearBoard()
 {
-    grid = std::vector<std::vector<GridCell>>(max_grid_H, std::vector<GridCell>(max_grid_W, {ElementType::EMPTY, ElementState::NONE, sf::Color::Black, 0, false}));
+    grid = std::vector<std::vector<GridCell>>(max_grid_H, std::vector<GridCell>(max_grid_W, {ElementType::EMPTY, ElementState::NONE, sf::Color::Black, 0, {0, 0}, false}));
 }
