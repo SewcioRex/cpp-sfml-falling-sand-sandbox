@@ -12,7 +12,7 @@ class Board
 private:
 
     const float GRAVITY_FORCE = 10.f;
-    const float  MAX_FALL_SPEED = 10.f;
+    const float MAX_FALL_SPEED = 10.f;
 
     //Variables
     std::random_device rd;
