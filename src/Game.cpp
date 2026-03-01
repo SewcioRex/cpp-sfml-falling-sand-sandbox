@@ -1,20 +1,22 @@
 #include "Game.hpp"
 
+Game::Game(int width, int height) : scale(2), board(width / scale, height / scale)
+{
+    this->initVariables(width, height);
+    this->initWindow(width, height);
+}
+
 void Game::initVariables(int width, int height)
 {
     this->window = nullptr;
     this->sprite = nullptr;
 
-    scale = 2;
-
-    image.resize(sf::Vector2u(width / scale, height / scale));
-
     brush_size = 3;
     tool = 0;
     mouse_left_hold = false;
 
+    image.resize(sf::Vector2u(width / scale, height / scale));
     if(!texture.resize(sf::Vector2u(width / scale, height / scale))) std::cout << "Error: Texture error\n";
-    
     this->sprite = new sf::Sprite(texture);
     this->sprite->setScale(sf::Vector2f(scale, scale));
 
@@ -35,9 +37,9 @@ void Game::update()
     event();
     
     dt = clock.restart().asSeconds();
-
     board.gridUpdate(dt);
 
+    //Spawn elements
     if(mouse_left_hold)
     {
         int mouse_X = (sf::Mouse::getPosition(*this->window).x) / scale;
@@ -45,18 +47,6 @@ void Game::update()
 
         board.brushTool(mouse_Y, mouse_X, brush_size, tool);
     }
-
-    /*dt = clock.restart().asSeconds();
-    timer += dt;
-
-    if(timer >= 0.001f)
-    {
-        
-
-        timer = 0.f;
-    }*/
-    
-    
 }
 
 void Game::event()
@@ -69,28 +59,7 @@ void Game::event()
         }
         else if(auto* key = event->getIf<sf::Event::KeyPressed>())
         {
-            if(key->scancode == sf::Keyboard::Scancode::T)
-            {
-                int mouse_X = (sf::Mouse::getPosition(*this->window).x) / scale;
-                int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / scale;
-
-                /*/std::string element_type;
-                if(board.grid[mouse_Y][mouse_X].elementType == Board::ElementType::EMPTY) element_type = "Empty";
-                else if(board.grid[mouse_Y][mouse_X].elementType == Board::ElementType::SAND) element_type = "Sand";
-
-                std::string color;
-                if(board.grid[mouse_Y][mouse_X].color == sf::Color::Black) color = "Black";
-                else if(board.grid[mouse_Y][mouse_X].color == sf::Color::Yellow) color = "Yellow";*/
-
-
-                //std::cout << "Pos X: " << mouse_X << " Pos Y " << mouse_Y << std::endl;
-                //std::cout << "Element Type: " << element_type << std::endl << "Color: " << color << std::endl
-                //std::cout << "Updated: " << board.grid[mouse_Y][mouse_X].has_been_updated << std::endl;
-
-                //std::cout << "Velocity Y: " << board.grid[mouse_Y][mouse_X].velocity.y << "\n";
-                //std::cout << "Velocity X: " << board.grid[mouse_Y][mouse_X].velocity.x << "\n";
-            }
-            else if(key->scancode == sf::Keyboard::Scancode::Num0)
+            if(key->scancode == sf::Keyboard::Scancode::Num0)
             {
                 tool = 0;
             }
@@ -153,17 +122,6 @@ void Game::boardDraw()
     texture.update(image);
 
     this->window->draw(*sprite);
-
-}
-
-
-
-Game::Game(int width, int height)
-{
-    this->initVariables(width, height);
-    this->initWindow(width, height);
-
-    board.initBoard(width / scale, height / scale);
 }
 
 Game::~Game()

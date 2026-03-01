@@ -19,19 +19,16 @@ private:
     std::mt19937 gen;
     std::uniform_int_distribution<> dist_1_2;
     std::uniform_int_distribution<> dist_1_40;
-    int random_side;
 
-    sf::Clock clock;
-
-    int side;
+    int side_to_update;
 
     int max_grid_H;
     int max_grid_W;
 
     //Functions
-    void gravity(int y, int x, float dt);
+    void updateSand(int y, int x, float dt);
 
-    //void powderUpdate(int y, int x, float dt);
+    void gravity(int y, int x, float dt);
 
 public:
     //Variables
@@ -42,30 +39,21 @@ public:
         WATER,
     };
 
-    enum ElementState
-    {
-        NONE = 0,
-        POWDER,
-        LIQUID
-    };
-
     struct GridCell
     {
         ElementType elementType;
-        ElementState state;
         sf::Color color;
         int density;
         sf::Vector2f velocity;
         bool has_been_updated;
     };
 
-
     std::vector<std::vector<GridCell>> grid;
 
-
     //Functions
-    void initBoard(int w, int h);
     void gridUpdate(float dt);
     void brushTool(int y, int x, int brush_size, int tool);
     void clearBoard();
+
+    Board(int width = 10, int height = 10);
 };

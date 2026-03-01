@@ -12,6 +12,7 @@ class Game
 {
 private:
 
+    int scale;
     //Board
     Board board;
 
@@ -31,8 +32,6 @@ private:
     int brush_size;
     int tool;
     bool mouse_left_hold;
-
-    int scale;
 
     //Functions
     void initVariables(int width, int height);
