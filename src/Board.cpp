@@ -52,45 +52,53 @@ void Board::grid_update()
 
 void Board::update_sand(int y, int x)
 {
-    if(!move_down(y, x)) move_diagonal(y, x);
+    auto& cell = grid[y][x];
+
+    if(cell.has_been_updated) return;
+
+    int ny = y, nx = x;
+
+    bool moved = powder_gravity(y, x, ny, nx);
+
+    if(moved)
+    {
+        std::swap(grid[y][x], grid[ny][nx]);
+        grid[ny][nx].has_been_updated = true;
+    }
+    else
+    {
+        grid[y][x].has_been_updated = true;
+    }
 }
 
-bool Board::move_down(int y, int x)
+bool Board::powder_gravity(int y, int x, int& ny, int& nx)
 {
-    int down = 1;
-
-    auto& cell = grid[y][x];
-    auto& new_cell = grid[y + down][x];
-    if(can_swap(y, x, y + down, x))
+    bool can_down = can_swap(y, x, y + 1, x);
+    if(can_down)
     {
-        std::swap(cell, new_cell);
+        ny = y + 1;
+        return true;
+    }
+
+    bool can_left_down = can_swap(y, x, y + 1, x - 1);
+    bool can_right_down = can_swap(y, x, y + 1, x + 1);
+
+    if(can_left_down || can_right_down)
+    {
+        int dir = 0;
+        if(can_left_down && can_right_down)
+        {
+            dir = dist_bool(gen);
+        }
+        else dir = can_left_down ? -1 : 1;
+
+        ny = y + 1;
+        nx = x + dir;
+
         return true;
     }
 
     return false;
-}
-
-bool Board::move_diagonal(int y, int x)
-{
-    auto& cell = grid[y][x];
-
-    int left = -1, right = 1, down = 1;
-    int dir = 0;
-
-    bool can_left_down = can_swap(y, x, y + down, x + left);
-    bool can_right_down = can_swap(y, x, y + down, x + right);
-
-    if(!(can_left_down || can_right_down)) return false;
-
-    if(can_left_down && !can_right_down) dir = left;
-    else if(!can_left_down && can_right_down) dir = right;
-    else dir = dist_bool(gen) ? left : right;
-
-    auto& new_cell = grid[y + down][x + dir];
-
-    std::swap(cell, new_cell);
-
-    return true;
 }
 
 bool Board::can_swap(int y, int x, int new_y, int new_x)
@@ -110,6 +118,7 @@ bool Board::in_bounds(int new_y, int new_x)
             new_x >= 0 &&
             new_x < max_grid_W;
 }
+
 
 void Board::brush_tool(int y, int x, int brush_size, ElementType tool)
 {
