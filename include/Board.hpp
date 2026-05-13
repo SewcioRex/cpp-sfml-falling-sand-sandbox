@@ -25,6 +25,12 @@ private:
 
     //Functions
 
+    bool can_swap(int y, int x, int new_y, int new_x);
+        bool in_bounds(int new_y, int new_x);
+
+    bool move_down(int y, int x);
+        bool move_diagonal(int y, int x);
+
     void update_sand(int y, int x);
     void update_water(int y, int x);
 

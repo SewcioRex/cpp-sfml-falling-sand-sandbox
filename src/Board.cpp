@@ -52,7 +52,63 @@ void Board::grid_update()
 
 void Board::update_sand(int y, int x)
 {
-    
+    if(!move_down(y, x)) move_diagonal(y, x);
+}
+
+bool Board::move_down(int y, int x)
+{
+    int down = 1;
+
+    auto& cell = grid[y][x];
+    auto& new_cell = grid[y + down][x];
+    if(can_swap(y, x, y + down, x))
+    {
+        std::swap(cell, new_cell);
+        return true;
+    }
+
+    return false;
+}
+
+bool Board::move_diagonal(int y, int x)
+{
+    auto& cell = grid[y][x];
+
+    int left = -1, right = 1, down = 1;
+    int dir = 0;
+
+    bool can_left_down = can_swap(y, x, y + down, x + left);
+    bool can_right_down = can_swap(y, x, y + down, x + right);
+
+    if(!(can_left_down || can_right_down)) return false;
+
+    if(can_left_down && !can_right_down) dir = left;
+    else if(!can_left_down && can_right_down) dir = right;
+    else dir = dist_bool(gen) ? left : right;
+
+    auto& new_cell = grid[y + down][x + dir];
+
+    std::swap(cell, new_cell);
+
+    return true;
+}
+
+bool Board::can_swap(int y, int x, int new_y, int new_x)
+{
+    if(!in_bounds(new_y, new_x)) return false;
+
+    auto& cell = grid[y][x];
+    auto& new_cell = grid[new_y][new_x];
+
+    return new_cell.density < cell.density;
+}
+
+bool Board::in_bounds(int new_y, int new_x)
+{
+    return  new_y >= 0 &&
+            new_y < max_grid_H &&
+            new_x >= 0 &&
+            new_x < max_grid_W;
 }
 
 void Board::brush_tool(int y, int x, int brush_size, ElementType tool)
