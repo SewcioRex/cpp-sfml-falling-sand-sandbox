@@ -11,13 +11,11 @@ class Board
 {
 private:
 
-    const float GRAVITY_FORCE = 10.f;
-    const float MAX_FALL_SPEED = 10.f;
-
     //Variables
     std::random_device rd;
     std::mt19937 gen;
-    std::uniform_int_distribution<> dist_1_2;
+    std::uniform_int_distribution<> dist_bool;
+    std::uniform_int_distribution<> dist_viscosity;
     std::uniform_int_distribution<> dist_1_40;
 
     int side_to_update;
@@ -26,9 +24,10 @@ private:
     int max_grid_W;
 
     //Functions
-    void updateSand(int y, int x, float dt);
 
-    void gravity(int y, int x, float dt);
+    void update_sand(int y, int x);
+    void update_water(int y, int x);
+
 
 public:
     //Variables
@@ -37,6 +36,7 @@ public:
         EMPTY = 0,
         SAND,
         WATER,
+        STONE,
     };
 
     struct GridCell
@@ -44,16 +44,17 @@ public:
         ElementType elementType;
         sf::Color color;
         int density;
-        sf::Vector2f velocity;
+        float fall_speed;
         bool has_been_updated;
     };
 
     std::vector<std::vector<GridCell>> grid;
+    std::vector<std::vector<GridCell>> update_grid;
 
     //Functions
-    void gridUpdate(float dt);
-    void brushTool(int y, int x, int brush_size, int tool);
-    void clearBoard();
+    void grid_update();
+    void brush_tool(int y, int x, int brush_size, ElementType elementType);
+    void clear_board();
 
     Board(int width = 10, int height = 10);
 };

@@ -2,9 +2,9 @@
 
 int main()
 {
-    Game game(1080, 720);
+    Game game(1440, 720);
 
-    while(game.isRunning())
+    while(game.is_running())
     {
         //Update
         game.update();

@@ -16,9 +16,6 @@ private:
     //Board
     Board board;
 
-    sf::Clock clock;
-    float dt;
-
     //Render
     sf::Image image;
     sf::Texture texture;
@@ -30,23 +27,23 @@ private:
 
     //Variables
     int brush_size;
-    int tool;
+    Board::ElementType tool;
     bool mouse_left_hold;
 
     //Functions
-    void initVariables(int width, int height);
-    void initWindow(unsigned int width, unsigned int height);
+    void init_variables(int width, int height);
+    void init_window(unsigned int width, unsigned int height);
 
     void event();
 
-    void boardDraw();
+    void board_draw();
     
 public:
     //Functions
     void update();
     void render();
 
-    const bool isRunning() const;
+    const bool is_running() const;
 
     //Constructor // Deconstructor
     Game(int w = 800, int h = 600);
