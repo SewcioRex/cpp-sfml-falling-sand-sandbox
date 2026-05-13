@@ -74,6 +74,16 @@ void Game::event()
             {
                 tool = Board::ElementType::STONE;
             }
+            else if(key->scancode == sf::Keyboard::Scancode::O)
+            {
+                for (int i = 0; i < 100; i++)
+                {
+                    for (int j = 0; j < 100; j++)
+                    {
+                        board.grid[i][j + 100] = {Board::ElementType::WATER, sf::Color::Blue, 5, false};
+                    }
+                }
+            }
             else if(key->scancode == sf::Keyboard::Scancode::Delete)
             {
                 board.clear_board();

@@ -16,7 +16,7 @@ private:
     std::mt19937 gen;
     std::uniform_int_distribution<> dist_bool;
     std::uniform_int_distribution<> dist_viscosity;
-    std::uniform_int_distribution<> dist_1_40;
+    std::uniform_int_distribution<> dist_1_100;
 
     int side_to_update;
 
@@ -26,6 +26,7 @@ private:
     //Functions
 
     bool powder_gravity(int y, int x, int& ny, int& nx);
+    bool liquid_gravity(int y, int x, int& ny, int& nx);
 
     bool can_swap(int y, int x, int new_y, int new_x);
         bool in_bounds(int new_y, int new_x);
@@ -49,7 +50,6 @@ public:
         ElementType elementType;
         sf::Color color;
         int density;
-        float fall_speed;
         bool has_been_updated;
     };
 
