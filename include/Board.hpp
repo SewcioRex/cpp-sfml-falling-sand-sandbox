@@ -27,12 +27,14 @@ private:
 
     bool powder_gravity(int y, int x, int& ny, int& nx);
     bool liquid_gravity(int y, int x, int& ny, int& nx);
+    bool gas_gravity(int y, int x, int& ny, int& nx);
 
     bool can_swap(int y, int x, int new_y, int new_x);
         bool in_bounds(int new_y, int new_x);
 
     void update_sand(int y, int x);
     void update_water(int y, int x);
+    void update_steam(int y, int x);
 
 
 public:
@@ -43,6 +45,7 @@ public:
         SAND,
         WATER,
         STONE,
+        STEAM,
     };
 
     struct GridCell

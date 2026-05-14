@@ -74,7 +74,11 @@ void Game::event()
             {
                 tool = Board::ElementType::STONE;
             }
-            else if(key->scancode == sf::Keyboard::Scancode::O)
+            else if(key->scancode == sf::Keyboard::Scancode::Num4)
+            {
+                tool = Board::ElementType::STEAM;
+            }
+            /*else if(key->scancode == sf::Keyboard::Scancode::O)
             {
                 for (int i = 0; i < 100; i++)
                 {
@@ -83,7 +87,7 @@ void Game::event()
                         board.grid[i][j + 100] = {Board::ElementType::WATER, sf::Color::Blue, 5, false};
                     }
                 }
-            }
+            }*/
             else if(key->scancode == sf::Keyboard::Scancode::Delete)
             {
                 board.clear_board();

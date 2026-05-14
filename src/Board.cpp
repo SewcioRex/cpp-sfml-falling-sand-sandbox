@@ -42,6 +42,7 @@ void Board::grid_update()
             {
                 case ElementType::SAND: update_sand(y, x); break;
                 case ElementType::WATER: update_water(y, x); break;
+                case ElementType::STEAM: update_steam(y, x); break;
                 default: break;
             }
         }
@@ -80,6 +81,27 @@ void Board::update_water(int y, int x)
     int ny = y, nx = x;
 
     bool moved = liquid_gravity(y, x, ny, nx);
+
+    if(moved)
+    {
+        std::swap(grid[y][x], grid[ny][nx]);
+        grid[ny][nx].has_been_updated = true;
+    }
+    else
+    {
+        grid[y][x].has_been_updated = true;
+    }
+}
+
+void Board::update_steam(int y, int x)
+{
+    auto& cell = grid[y][x];
+
+    if(cell.has_been_updated) return;
+
+    int ny = y, nx = x;
+
+    bool moved = gas_gravity(y, x, ny, nx);
 
     if(moved)
     {
@@ -173,6 +195,58 @@ bool Board::liquid_gravity(int y, int x, int& ny, int& nx)
     return false;
 }
 
+bool Board::gas_gravity(int y, int x, int& ny, int& nx)
+{
+    bool can_up = can_swap(y, x, y - 1, nx);
+
+    if(can_up)
+    {
+        ny = y - 1;
+        return true;
+    }
+
+    bool can_left_up = can_swap(y, x, y - 1, x - 1);
+    bool can_right_up = can_swap(y, x, y - 1, x + 1);
+
+    if (can_left_up || can_right_up)
+    {
+        int dir = 0;
+
+        if (can_left_up && !can_right_up)
+            dir = -1;
+        else if (!can_left_up && can_right_up)
+            dir = 1;
+        else
+            dir = dist_bool(gen) ? -1 : 1;
+
+        ny = y - 1;
+        nx = x + dir;
+
+        return true;
+    }
+
+    bool can_left = can_swap(y, x, y, x - 1);
+    bool can_right = can_swap(y, x, y, x + 1);
+
+    if (can_left || can_right)
+    {
+        int dir = 0;
+        if (can_left && !can_right)
+            dir = -1;
+        else if (!can_left && can_right)
+            dir = 1;
+        else
+            dir = dist_bool(gen) ? -1 : 1;
+
+        ny = y;
+        nx = x + dir;
+
+        return true;
+    }
+
+    return false;
+}
+
 bool Board::can_swap(int y, int x, int new_y, int new_x)
 {
     if(!in_bounds(new_y, new_x)) return false;
@@ -224,6 +298,9 @@ void Board::brush_tool(int y, int x, int brush_size, ElementType tool)
 
                 else if (tool == ElementType::WATER)
                     cell = {WATER, sf::Color::Blue, 5, false};
+
+                else if (tool == ElementType::STEAM)
+                    cell = {STEAM, sf::Color::White, 1, false};
             }
         }
     }
