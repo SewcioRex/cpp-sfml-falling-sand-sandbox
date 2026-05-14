@@ -17,6 +17,7 @@ private:
     std::uniform_int_distribution<> dist_bool;
     std::uniform_int_distribution<> dist_viscosity;
     std::uniform_int_distribution<> dist_1_100;
+    std::uniform_int_distribution<> dist_0_2;
 
     int side_to_update;
 
@@ -35,6 +36,7 @@ private:
     void update_sand(int y, int x);
     void update_water(int y, int x);
     void update_steam(int y, int x);
+    void update_fire(int y, int x);
 
 
 public:
@@ -46,6 +48,7 @@ public:
         WATER,
         STONE,
         STEAM,
+        FIRE,
     };
 
     struct GridCell
@@ -53,6 +56,7 @@ public:
         ElementType elementType;
         sf::Color color;
         int density;
+        int age;
         bool has_been_updated;
     };
 

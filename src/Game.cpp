@@ -78,6 +78,10 @@ void Game::event()
             {
                 tool = Board::ElementType::STEAM;
             }
+            else if(key->scancode == sf::Keyboard::Scancode::Num5)
+            {
+                tool = Board::ElementType::FIRE;
+            }
             /*else if(key->scancode == sf::Keyboard::Scancode::O)
             {
                 for (int i = 0; i < 100; i++)
@@ -88,6 +92,13 @@ void Game::event()
                     }
                 }
             }*/
+            else if(key->scancode == sf::Keyboard::Scancode::T)
+            {
+                int mouse_X = (sf::Mouse::getPosition(*this->window).x) / scale;
+                int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / scale;
+
+                std::cout << board.grid[mouse_Y][mouse_X].age << "\n";
+            }
             else if(key->scancode == sf::Keyboard::Scancode::Delete)
             {
                 board.clear_board();

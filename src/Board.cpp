@@ -4,7 +4,7 @@
 Board::Board(int width, int height)
 {
     //Board init
-    grid = std::vector<std::vector<GridCell>>(height, std::vector<GridCell>(width, {ElementType::EMPTY, sf::Color::Black, 0, false}));
+    grid = std::vector<std::vector<GridCell>>(height, std::vector<GridCell>(width, {ElementType::EMPTY, sf::Color::Black, 0, 0, false}));
 
     //Grid max size
     max_grid_H = grid.size();
@@ -14,6 +14,7 @@ Board::Board(int width, int height)
     gen = std::mt19937(rd());
     dist_bool = std::uniform_int_distribution<>(0, 1);
     dist_1_100 = std::uniform_int_distribution<>(1, 100);
+    dist_0_2 = std::uniform_int_distribution<>(0, 2);
 
     side_to_update = 1;
 }
@@ -43,6 +44,7 @@ void Board::grid_update()
                 case ElementType::SAND: update_sand(y, x); break;
                 case ElementType::WATER: update_water(y, x); break;
                 case ElementType::STEAM: update_steam(y, x); break;
+                case ElementType::FIRE: update_fire(y, x); break;
                 default: break;
             }
         }
@@ -56,6 +58,8 @@ void Board::update_sand(int y, int x)
     auto& cell = grid[y][x];
 
     if(cell.has_been_updated) return;
+
+    cell.age++;
 
     int ny = y, nx = x;
 
@@ -78,6 +82,8 @@ void Board::update_water(int y, int x)
 
     if(cell.has_been_updated) return;
 
+    cell.age++;
+
     int ny = y, nx = x;
 
     bool moved = liquid_gravity(y, x, ny, nx);
@@ -99,6 +105,8 @@ void Board::update_steam(int y, int x)
 
     if(cell.has_been_updated) return;
 
+    cell.age++;
+
     int ny = y, nx = x;
 
     bool moved = gas_gravity(y, x, ny, nx);
@@ -112,6 +120,48 @@ void Board::update_steam(int y, int x)
     {
         grid[y][x].has_been_updated = true;
     }
+}
+
+void Board::update_fire(int y, int x)
+{
+    auto& cell = grid[y][x];
+
+    if(cell.has_been_updated) return;
+
+    cell.has_been_updated = true;
+
+    cell.age++;
+
+    if(cell.age > 30)
+    {
+        cell = {EMPTY, sf::Color::Black, 0, 0};
+        return;
+    }
+
+    //Test not final code
+    for(int i = -1; i < 2; i++)
+    {
+        for(int j = -1; j < 2; j++)
+        {
+            if (y + i < 0 || y + i >= max_grid_H)
+                continue;
+            if (x + j < 0 || x + j >= max_grid_W)
+                continue;
+            if(i == 0 && j == 0) 
+                continue;
+
+            if(grid[y + i][x + j].elementType == WATER) grid[y + i][x + j] = {STEAM, sf::Color::White, 1, 0, false};
+        }
+    }
+
+    int ran_y = y - dist_bool(gen);
+    int ran_x = x + dist_0_2(gen) - 1; //ran val 0-2
+
+    if(in_bounds(ran_y, ran_x))
+    {
+        if(grid[ran_y][ran_x].elementType == EMPTY) std::swap(cell, grid[ran_y][ran_x]);
+    }
+
 }
 
 bool Board::powder_gravity(int y, int x, int& ny, int& nx)
@@ -272,35 +322,38 @@ void Board::brush_tool(int y, int x, int brush_size, ElementType tool)
     {
         for (int j = -brush_size / 2; j <= brush_size / 2; j++)
         {
-            if (y + i < 0 || y + i >= grid.size())
+            if (y + i < 0 || y + i >= max_grid_H)
                 continue;
-            if (x + j < 0 || x + j >= grid[y].size())
+            if (x + j < 0 || x + j >= max_grid_W)
                 continue;
 
             auto &cell = grid[y + i][x + j];
 
             if (tool == ElementType::EMPTY)
             {
-                cell = {EMPTY, sf::Color::Black, 0, false};
+                cell = {EMPTY, sf::Color::Black, 0, 0, false};
                 continue;
             }
 
             if (tool == ElementType::STONE)
             {
-                cell = {STONE, {93, 93, 93, 255}, 10, false};
+                cell = {STONE, {93, 93, 93, 255}, 10, 0, false};
                 continue;
             }
 
             if (cell.elementType == EMPTY && dist_1_100(gen) == 1)
             {
                 if (tool == ElementType::SAND)
-                    cell = {SAND, sf::Color::Yellow, 10, false};
+                    cell = {SAND, sf::Color::Yellow, 10, 0, false};
 
                 else if (tool == ElementType::WATER)
-                    cell = {WATER, sf::Color::Blue, 5, false};
+                    cell = {WATER, sf::Color::Blue, 5, 0, false};
 
                 else if (tool == ElementType::STEAM)
-                    cell = {STEAM, sf::Color::White, 1, false};
+                    cell = {STEAM, sf::Color::White, 1, 0, false};
+
+                else if (tool == ElementType::FIRE)
+                    cell = {FIRE, sf::Color::Red, 100, 0, false};
             }
         }
     }
@@ -308,5 +361,5 @@ void Board::brush_tool(int y, int x, int brush_size, ElementType tool)
 
 void Board::clear_board()
 {
-    grid = std::vector<std::vector<GridCell>>(max_grid_H, std::vector<GridCell>(max_grid_W, {ElementType::EMPTY, sf::Color::Black, 0, false}));
+    grid = std::vector<std::vector<GridCell>>(max_grid_H, std::vector<GridCell>(max_grid_W, {ElementType::EMPTY, sf::Color::Black, 0, 0, false}));
 }
