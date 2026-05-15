@@ -82,6 +82,10 @@ void Game::event()
             {
                 tool = Board::ElementType::FIRE;
             }
+            else if(key->scancode == sf::Keyboard::Scancode::Num6)
+            {
+                tool = Board::ElementType::WOOD;
+            }
             /*else if(key->scancode == sf::Keyboard::Scancode::O)
             {
                 for (int i = 0; i < 100; i++)

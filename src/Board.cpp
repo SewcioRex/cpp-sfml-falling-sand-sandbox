@@ -3,12 +3,10 @@
 
 Board::Board(int width, int height)
 {
-    //Board init
-    grid = std::vector<std::vector<GridCell>>(height, std::vector<GridCell>(width, {ElementType::EMPTY, sf::Color::Black, 0, 0, false}));
+    max_grid_H = height;
+    max_grid_W = width;
 
-    //Grid max size
-    max_grid_H = grid.size();
-    max_grid_W = grid[0].size();
+    clear_board();
 
     //Randoms
     gen = std::mt19937(rd());
@@ -45,6 +43,7 @@ void Board::grid_update()
                 case ElementType::WATER: update_water(y, x); break;
                 case ElementType::STEAM: update_steam(y, x); break;
                 case ElementType::FIRE: update_fire(y, x); break;
+                case ElementType::WOOD: update_wood(y, x); break;
                 default: break;
             }
         }
@@ -132,37 +131,57 @@ void Board::update_fire(int y, int x)
 
     cell.age++;
 
-    if(cell.age > 30)
+    if(cell.age > 20)
     {
-        cell = {EMPTY, sf::Color::Black, 0, 0};
+        cell = {EMPTY, sf::Color::Black, 0, false, 0, 0, true};
         return;
     }
 
-    //Test not final code
-    for(int i = -1; i < 2; i++)
-    {
-        for(int j = -1; j < 2; j++)
-        {
-            if (y + i < 0 || y + i >= max_grid_H)
-                continue;
-            if (x + j < 0 || x + j >= max_grid_W)
-                continue;
-            if(i == 0 && j == 0) 
-                continue;
+    int ran_y = y + dist_0_2(gen) - 1;
+    int ran_x = x + dist_0_2(gen) - 1; // ran val 0-2
 
-            if(grid[y + i][x + j].elementType == WATER) grid[y + i][x + j] = {STEAM, sf::Color::White, 1, 0, false};
+    if (in_bounds(ran_y, ran_x))
+    {
+        auto& ran_cell = grid[ran_y][ran_x];
+
+        if(ran_cell.is_flammable) ran_cell.is_burning = true;
+    }
+
+    ran_y = y - dist_bool(gen);
+    ran_x = x + dist_0_2(gen) - 1; // ran val 0-2
+
+    if (in_bounds(ran_y, ran_x))
+    {
+        auto& ran_cell = grid[ran_y][ran_x];
+
+        if (ran_cell.elementType == EMPTY) std::swap(cell, ran_cell);
+    }
+}
+
+void Board::update_wood(int y, int x)
+{
+    auto& cell = grid[y][x];
+
+    if(cell.has_been_updated) return;
+
+    cell.has_been_updated = true;
+
+    if(cell.is_burning)
+    {
+        cell.fuel--;
+
+        int ran_y = y + dist_0_2(gen) - 1;
+        int ran_x = x + dist_0_2(gen) - 1;
+
+        if (in_bounds(ran_y, ran_x))
+        {
+            if (grid[ran_y][ran_x].elementType == EMPTY) grid[ran_y][ran_x] = fire_cell();
         }
     }
 
-    int ran_y = y - dist_bool(gen);
-    int ran_x = x + dist_0_2(gen) - 1; //ran val 0-2
-
-    if(in_bounds(ran_y, ran_x))
-    {
-        if(grid[ran_y][ran_x].elementType == EMPTY) std::swap(cell, grid[ran_y][ran_x]);
-    }
-
+    if(cell.fuel <= 0) cell = empty_cell();
 }
+
 
 bool Board::powder_gravity(int y, int x, int& ny, int& nx)
 {
@@ -331,29 +350,34 @@ void Board::brush_tool(int y, int x, int brush_size, ElementType tool)
 
             if (tool == ElementType::EMPTY)
             {
-                cell = {EMPTY, sf::Color::Black, 0, 0, false};
+                cell = empty_cell();
                 continue;
             }
 
             if (tool == ElementType::STONE)
             {
-                cell = {STONE, {93, 93, 93, 255}, 10, 0, false};
+                cell = stone_cell();
+                continue;
+            }
+            if (tool == ElementType::WOOD)
+            {
+                cell = wood_cell();
                 continue;
             }
 
             if (cell.elementType == EMPTY && dist_1_100(gen) == 1)
             {
                 if (tool == ElementType::SAND)
-                    cell = {SAND, sf::Color::Yellow, 10, 0, false};
+                    cell = sand_cell();
 
                 else if (tool == ElementType::WATER)
-                    cell = {WATER, sf::Color::Blue, 5, 0, false};
+                    cell = water_cell();
 
                 else if (tool == ElementType::STEAM)
-                    cell = {STEAM, sf::Color::White, 1, 0, false};
+                    cell = steam_cell();
 
                 else if (tool == ElementType::FIRE)
-                    cell = {FIRE, sf::Color::Red, 100, 0, false};
+                    cell = fire_cell();
             }
         }
     }
@@ -361,5 +385,96 @@ void Board::brush_tool(int y, int x, int brush_size, ElementType tool)
 
 void Board::clear_board()
 {
-    grid = std::vector<std::vector<GridCell>>(max_grid_H, std::vector<GridCell>(max_grid_W, {ElementType::EMPTY, sf::Color::Black, 0, 0, false}));
+    grid = std::vector<std::vector<GridCell>>(max_grid_H, std::vector<GridCell>(max_grid_W, empty_cell()));
+}
+
+Board::GridCell Board::empty_cell()
+{
+    return{
+        ElementType::EMPTY,     //Element Type
+        sf::Color::Black,       //Color
+        0,                      //Density
+        false,                  //Is Flammable
+        false,                  //Is Burning
+        0,                      //Fuel
+        false                   //Has Been Updated
+    };
+}
+
+Board::GridCell Board::sand_cell()
+{
+    return{
+        ElementType::SAND,      //Element Type
+        sf::Color::Yellow,      //Color
+        10,                     //Density
+        false,                  //Is Flammable
+        false,                  //Is Burning
+        0,                      //Fuel
+        false                   //Has Been Updated
+    };
+}
+
+Board::GridCell Board::water_cell()
+{
+    return{
+        ElementType::WATER,     //Element Type
+        sf::Color::Blue,        //Color
+        5,                      //Density
+        false,                  //Is Flammable
+        false,                  //Is Burning
+        0,                      //Fuel
+        false                   //Has Been Updated
+    };
+}
+
+Board::GridCell Board::stone_cell()
+{
+    return{
+        ElementType::STONE,     //Element Type
+        {93, 93, 93, 255},      //Color
+        10,                     //Density
+        false,                  //Is Flammable
+        false,                  //Is Burning
+        0,                      //Fuel
+        false                   //Has Been Updated
+    };
+}
+
+Board::GridCell Board::steam_cell()
+{
+    return{
+        ElementType::STEAM,     //Element Type
+        sf::Color::White,       //Color
+        1,                      //Density
+        false,                  //Is Flammable
+        false,                  //Is Burning
+        0,                      //Fuel
+        false                   //Has Been Updated
+    };
+}
+
+Board::GridCell Board::fire_cell()
+{
+    return{
+        ElementType::FIRE,      //Element Type
+        sf::Color::Red,         //Color
+        100,                    //Density
+        false,                  //Is Flammable
+        false,                  //Is Burning
+        0,                      //Fuel
+        false                   //Has Been Updated
+    };
+}
+
+Board::GridCell Board::wood_cell()
+{
+    return{
+        ElementType::WOOD,      //Element Type
+        {150, 75, 0, 255},      //Color
+        10,                     //Density
+        true,                   //Is Flammable
+        false,                  //Is Burning
+        100,                    //Fuel
+        false                   //Has Been Updated
+    };
 }
