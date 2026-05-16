@@ -44,6 +44,7 @@ void Board::grid_update()
                 case ElementType::STEAM: update_steam(y, x); break;
                 case ElementType::FIRE: update_fire(y, x); break;
                 case ElementType::WOOD: update_wood(y, x); break;
+                case ElementType::ASH: update_ash(y, x); break;
                 default: break;
             }
         }
@@ -58,21 +59,15 @@ void Board::update_sand(int y, int x)
 
     if(cell.has_been_updated) return;
 
+    cell.has_been_updated = true;
+
     cell.age++;
 
     int ny = y, nx = x;
 
     bool moved = powder_gravity(y, x, ny, nx);
 
-    if(moved)
-    {
-        std::swap(grid[y][x], grid[ny][nx]);
-        grid[ny][nx].has_been_updated = true;
-    }
-    else
-    {
-        grid[y][x].has_been_updated = true;
-    }
+    if(moved) std::swap(grid[y][x], grid[ny][nx]);
 }
 
 void Board::update_water(int y, int x)
@@ -81,21 +76,15 @@ void Board::update_water(int y, int x)
 
     if(cell.has_been_updated) return;
 
+    cell.has_been_updated = true;
+
     cell.age++;
 
     int ny = y, nx = x;
 
     bool moved = liquid_gravity(y, x, ny, nx);
 
-    if(moved)
-    {
-        std::swap(grid[y][x], grid[ny][nx]);
-        grid[ny][nx].has_been_updated = true;
-    }
-    else
-    {
-        grid[y][x].has_been_updated = true;
-    }
+    if(moved) std::swap(grid[y][x], grid[ny][nx]);
 }
 
 void Board::update_steam(int y, int x)
@@ -104,21 +93,15 @@ void Board::update_steam(int y, int x)
 
     if(cell.has_been_updated) return;
 
+    grid[y][x].has_been_updated = true;
+
     cell.age++;
 
     int ny = y, nx = x;
 
     bool moved = gas_gravity(y, x, ny, nx);
 
-    if(moved)
-    {
-        std::swap(grid[y][x], grid[ny][nx]);
-        grid[ny][nx].has_been_updated = true;
-    }
-    else
-    {
-        grid[y][x].has_been_updated = true;
-    }
+    if(moved) std::swap(grid[y][x], grid[ny][nx]);
 }
 
 void Board::update_fire(int y, int x)
@@ -130,6 +113,8 @@ void Board::update_fire(int y, int x)
     cell.has_been_updated = true;
 
     cell.age++;
+
+    cell.color = {255, static_cast<uint8_t>(std::min(cell.age * 15, 255)), 0, 255};
 
     if(cell.age > 20)
     {
@@ -168,6 +153,7 @@ void Board::update_wood(int y, int x)
 
     if(cell.is_burning)
     {
+
         cell.fuel--;
 
         int ran_y = y + dist_0_2(gen) - 1;
@@ -179,7 +165,31 @@ void Board::update_wood(int y, int x)
         }
     }
 
-    if(cell.fuel <= 0) cell = empty_cell();
+    if(cell.fuel <= 0)
+    {
+        int random = dist_1_100(gen);
+
+        if(random >= 5) cell = empty_cell();
+        else cell = ash_cell();
+    }
+}
+
+void Board::update_ash(int y, int x)
+{
+    auto& cell = grid[y][x];
+
+    if(cell.has_been_updated) return;
+
+    cell.has_been_updated = true;
+
+    int random = dist_1_100(gen);
+
+    if(random > 80)
+    {
+        int ran_x = x + dist_0_2(gen) - 1;
+
+        if(can_swap(y, x, y + 1, ran_x)) std::swap(cell, grid[y + 1][ran_x]);
+    }
 }
 
 
@@ -403,9 +413,17 @@ Board::GridCell Board::empty_cell()
 
 Board::GridCell Board::sand_cell()
 {
+    std::array<sf::Color, 3> sand_colors{
+        sf::Color::Yellow,
+        sf::Color(200, 180, 0, 255),
+        sf::Color(255, 255, 120, 255)
+    };
+
+    int random = dist_0_2(gen);
+
     return{
         ElementType::SAND,      //Element Type
-        sf::Color::Yellow,      //Color
+        sand_colors[random],      //Color
         10,                     //Density
         false,                  //Is Flammable
         false,                  //Is Burning
@@ -416,9 +434,10 @@ Board::GridCell Board::sand_cell()
 
 Board::GridCell Board::water_cell()
 {
+
     return{
         ElementType::WATER,     //Element Type
-        sf::Color::Blue,        //Color
+        {30, 144, 255, 255},        //Color
         5,                      //Density
         false,                  //Is Flammable
         false,                  //Is Burning
@@ -429,9 +448,16 @@ Board::GridCell Board::water_cell()
 
 Board::GridCell Board::stone_cell()
 {
+    std::array<sf::Color, 3> stone_colors{
+        sf::Color(105, 105, 105, 255),
+        sf::Color(128, 128, 128, 255),
+        sf::Color(169, 169, 169, 255)
+    };
+
+    //{93, 93, 93, 255}, Old color
     return{
         ElementType::STONE,     //Element Type
-        {93, 93, 93, 255},      //Color
+        stone_colors[dist_0_2(gen)],      //Color
         10,                     //Density
         false,                  //Is Flammable
         false,                  //Is Burning
@@ -444,7 +470,7 @@ Board::GridCell Board::steam_cell()
 {
     return{
         ElementType::STEAM,     //Element Type
-        sf::Color::White,       //Color
+        {255, 255, 255, 200},       //Color
         1,                      //Density
         false,                  //Is Flammable
         false,                  //Is Burning
@@ -475,6 +501,19 @@ Board::GridCell Board::wood_cell()
         true,                   //Is Flammable
         false,                  //Is Burning
         100,                    //Fuel
+        false                   //Has Been Updated
+    };
+}
+
+Board::GridCell Board::ash_cell()
+{
+    return{
+        ElementType::ASH,       //Element Type
+        {211, 211, 211, 255},   //Color
+        10,                      //Density
+        false,                  //Is Flammable
+        false,                  //Is Burning
+        0,                      //Fuel
         false                   //Has Been Updated
     };
 }

@@ -38,6 +38,7 @@ private:
     void update_steam(int y, int x);
     void update_fire(int y, int x);
     void update_wood(int y, int x);
+    void update_ash(int y, int x);
 
     //void create_empty(int y, int x);
 
@@ -53,6 +54,7 @@ public:
         STEAM,
         FIRE,
         WOOD,
+        ASH,
     };
 
     struct GridCell
@@ -81,6 +83,7 @@ public:
     GridCell steam_cell();
     GridCell fire_cell();
     GridCell wood_cell();
+    GridCell ash_cell();
 
     Board(int width = 10, int height = 10);
 };
