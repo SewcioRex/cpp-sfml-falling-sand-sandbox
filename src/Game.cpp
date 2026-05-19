@@ -86,22 +86,13 @@ void Game::event()
             {
                 tool = Board::ElementType::WOOD;
             }
-            /*else if(key->scancode == sf::Keyboard::Scancode::O)
+            else if(key->scancode == sf::Keyboard::Scancode::Space)
             {
-                for (int i = 0; i < 100; i++)
-                {
-                    for (int j = 0; j < 100; j++)
-                    {
-                        board.grid[i][j + 100] = {Board::ElementType::WATER, sf::Color::Blue, 5, false};
-                    }
-                }
-            }*/
-            else if(key->scancode == sf::Keyboard::Scancode::T)
+                board.is_paused = !board.is_paused;
+            }
+            else if(key->scancode == sf::Keyboard::Scancode::Right)
             {
-                int mouse_X = (sf::Mouse::getPosition(*this->window).x) / scale;
-                int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / scale;
-
-                std::cout << board.grid[mouse_Y][mouse_X].age << "\n";
+                if(board.is_paused) board.can_render_next_frame = true;
             }
             else if(key->scancode == sf::Keyboard::Scancode::Delete)
             {
@@ -143,9 +134,9 @@ void Game::render()
 
 void Game::board_draw()
 {
-    for(int i = 0; i < board.grid.size(); i++)
+    for(int i = 0; i < board.max_grid_H; i++)
     {
-        for(int j = 0; j < board.grid[i].size(); j++)
+        for(int j = 0; j < board.max_grid_W; j++)
         {
             image.setPixel(sf::Vector2u(j, i), board.grid[i][j].color);
         }

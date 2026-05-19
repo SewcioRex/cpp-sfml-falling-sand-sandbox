@@ -12,6 +12,7 @@ class Board
 private:
 
     //Variables
+        //Random
     std::random_device rd;
     std::mt19937 gen;
     std::uniform_int_distribution<> dist_bool;
@@ -20,9 +21,6 @@ private:
     std::uniform_int_distribution<> dist_0_2;
 
     int side_to_update;
-
-    int max_grid_H;
-    int max_grid_W;
 
     //Functions
 
@@ -40,8 +38,6 @@ private:
     void update_wood(int y, int x);
     void update_ash(int y, int x);
 
-    //void create_empty(int y, int x);
-
 
 public:
     //Variables
@@ -49,12 +45,12 @@ public:
     {
         EMPTY = 0,
         SAND,
-        WATER,
+        ASH,
         STONE,
+        WOOD,
+        WATER,
         STEAM,
         FIRE,
-        WOOD,
-        ASH,
     };
 
     struct GridCell
@@ -69,6 +65,12 @@ public:
         bool has_been_updated;
     };
 
+    int max_grid_H;
+    int max_grid_W;
+
+    bool is_paused;
+    bool can_render_next_frame;
+
     std::vector<std::vector<GridCell>> grid;
 
     //Functions
@@ -76,14 +78,25 @@ public:
     void brush_tool(int y, int x, int brush_size, ElementType elementType);
     void clear_board();
 
+    //EMPTY
     GridCell empty_cell();
+
+    //POWDER
     GridCell sand_cell();
-    GridCell water_cell();
-    GridCell stone_cell();
-    GridCell steam_cell();
-    GridCell fire_cell();
-    GridCell wood_cell();
     GridCell ash_cell();
+
+    //SOLID
+    GridCell stone_cell();
+    GridCell wood_cell();
+
+    //LIQUID
+    GridCell water_cell();
+
+    //GAS
+    GridCell steam_cell();
+
+    //OTHER
+    GridCell fire_cell();
 
     Board(int width = 10, int height = 10);
 };
