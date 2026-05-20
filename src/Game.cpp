@@ -4,27 +4,69 @@ Game::Game(int width, int height) : scale(3), board(width / scale, height / scal
 {
     this->init_variables(width, height);
     this->init_window(width, height);
+    this->init_brush();
+    this->init_render_data(width, height);
 }
 
 void Game::init_variables(int width, int height)
 {
     this->window = nullptr;
     this->sprite = nullptr;
+    this->brush_element_text = nullptr;
 
-    brush_size = 3;
-    tool = Board::ElementType::EMPTY;
     mouse_left_hold = false;
-
-    image.resize(sf::Vector2u(width / scale, height / scale));
-    if(!texture.resize(sf::Vector2u(width / scale, height / scale))) std::cout << "Error: Texture error\n";
-    this->sprite = new sf::Sprite(texture);
-    this->sprite->setScale(sf::Vector2f(scale, scale));
-
+    mouse_right_hold = false;
 }
 
 void Game::init_window(unsigned int width, unsigned int height)
 {
     this->window = new sf::RenderWindow(sf::VideoMode({width, height}), "Sandbox", sf::Style::Titlebar | sf::Style::Close);
+}
+
+void Game::init_brush()
+{
+    //Brush Text Data Vector
+    brush_element_text_data_vector = {
+        {"EMPTY", sf::Color::White},
+        {"SAND", sf::Color::Yellow},
+        {"ASH", {211, 211, 211, 255}},
+        {"STONE", {105, 105, 105, 255}},
+        {"WOOD", {150, 75, 0, 255}},
+        {"WATER", {30, 144, 255, 255}},
+        {"OIL", {64, 49, 37, 255}},
+        {"STEAM", {255, 255, 255, 200}},
+        {"SMOKE", {10, 10, 10, 255}},
+        {"FIRE", sf::Color::Red}
+    };
+
+    //Start Brush Data
+    brush_size = 5;
+    brush_element = Board::ElementType::SAND;
+
+
+    //Brush Outline Shape
+    brush_outline.setSize({10.f, 10.f});
+    brush_outline.setScale(sf::Vector2f(scale, scale));
+    brush_outline.setFillColor(sf::Color::Transparent);
+    brush_outline.setOutlineColor({212, 217, 219, 150});
+    brush_outline.setOutlineThickness(0.5f);
+
+    //Font load
+    if(!pixel_font.openFromFile("assets/fonts/PixelatedEleganceRegular-ovawB.ttf")) std::cout << "Error: Font error\n";
+
+    //Brush Element Text
+    this->brush_element_text = new sf::Text(pixel_font);
+    this->brush_element_text -> setCharacterSize(20);
+    this->brush_element_text -> setPosition({10, 10});
+    brush_element_text_update(brush_element);
+}
+
+void Game::init_render_data(int width, int height)
+{
+    image.resize(sf::Vector2u(width / scale, height / scale));
+    if(!texture.resize(sf::Vector2u(width / scale, height / scale))) std::cout << "Error: Texture error\n";
+    this->sprite = new sf::Sprite(texture);
+    this->sprite->setScale(sf::Vector2f(scale, scale));
 }
 
 const bool Game::is_running() const
@@ -38,13 +80,18 @@ void Game::update()
     
     board.grid_update();
 
-    //Spawn elements
-    if(mouse_left_hold)
-    {
-        int mouse_X = (sf::Mouse::getPosition(*this->window).x) / scale;
-        int mouse_Y = (sf::Mouse::getPosition(*this->window).y) / scale;
+    sf::Vector2i mouse_pos = {sf::Mouse::getPosition(*this->window).x, sf::Mouse::getPosition(*this->window).y};
 
-        board.brush_tool(mouse_Y, mouse_X, brush_size, tool);
+    brush_outline.setSize({static_cast<float>(brush_size), static_cast<float>(brush_size)});
+    brush_outline.setPosition({static_cast<float>(mouse_pos.x) - (brush_size * scale) / 2, static_cast<float>(mouse_pos.y) - (brush_size * scale) / 2});
+
+    //Spawn elements
+    if(mouse_left_hold && !mouse_right_hold) 
+        board.brush_tool(mouse_pos.y / scale, mouse_pos.x / scale, brush_size, brush_element);
+    
+    if(mouse_right_hold && !mouse_left_hold)
+    {
+        board.brush_tool(mouse_pos.y / scale, mouse_pos.x / scale, brush_size, Board::ElementType::EMPTY);
     }
 }
 
@@ -58,69 +105,68 @@ void Game::event()
         }
         else if(auto* key = event->getIf<sf::Event::KeyPressed>())
         {
-            if(key->scancode == sf::Keyboard::Scancode::Num0)
-            {
-                tool = Board::ElementType::EMPTY;
-            }
-            else if(key->scancode == sf::Keyboard::Scancode::Num1)
-            {
-                tool = Board::ElementType::SAND;
-            }
-            else if(key->scancode == sf::Keyboard::Scancode::Num2)
-            {
-                tool = Board::ElementType::WATER;
-            }
-            else if(key->scancode == sf::Keyboard::Scancode::Num3)
-            {
-                tool = Board::ElementType::STONE;
-            }
-            else if(key->scancode == sf::Keyboard::Scancode::Num4)
-            {
-                tool = Board::ElementType::STEAM;
-            }
-            else if(key->scancode == sf::Keyboard::Scancode::Num5)
-            {
-                tool = Board::ElementType::FIRE;
-            }
-            else if(key->scancode == sf::Keyboard::Scancode::Num6)
-            {
-                tool = Board::ElementType::WOOD;
-            }
+            if(key->scancode == sf::Keyboard::Scancode::LShift)
+                left_shift_down = true;
+            
             else if(key->scancode == sf::Keyboard::Scancode::Space)
-            {
                 board.is_paused = !board.is_paused;
-            }
+
             else if(key->scancode == sf::Keyboard::Scancode::Right)
-            {
                 if(board.is_paused) board.can_render_next_frame = true;
-            }
+
             else if(key->scancode == sf::Keyboard::Scancode::Delete)
-            {
                 board.clear_board();
-            }              
+        }
+        else if(auto* key = event->getIf<sf::Event::KeyReleased>())
+        {
+            if(key->scancode == sf::Keyboard::Scancode::LShift) left_shift_down = false;
         }
         else if(auto* key = event->getIf<sf::Event::MouseButtonPressed>())
         {
-            if(key->button == sf::Mouse::Button::Left)
-            {
-                if(!mouse_left_hold) mouse_left_hold = true;
-            }
+            if(key->button == sf::Mouse::Button::Left && !mouse_right_hold)
+                mouse_left_hold = true;
+
+            else if(key->button == sf::Mouse::Button::Right && !mouse_left_hold)
+                mouse_right_hold = true;
         }
         else if(auto* key = event->getIf<sf::Event::MouseButtonReleased>())
         {
             if(key->button == sf::Mouse::Button::Left)
-            {
-                if(mouse_left_hold) mouse_left_hold = false;
-            }
+                mouse_left_hold = false;
+
+            else if(key->button == sf::Mouse::Button::Right)
+                mouse_right_hold = false;
         }
         else if(auto* mouse = event->getIf<sf::Event::MouseWheelScrolled>())
         {
-            if(mouse->delta > 0 && brush_size < 101) brush_size += 2;
-            else if(mouse->delta < 0 && brush_size > 1) brush_size -= 2;
+            if(left_shift_down)
+            {
+                if (mouse->delta > 0 && brush_size < 31)
+                    brush_size += 2;
+                else if (mouse->delta < 0 && brush_size > 5)
+                    brush_size -= 2;
+            }
+            else
+            {
+                if(mouse->delta > 0) brush_element++;
+                else brush_element--;
 
-            std::cout << "Brush Size: " << brush_size << std::endl;
+                //Fire is always last element
+                if(brush_element > Board::ElementType::FIRE) brush_element = Board::ElementType::SAND;
+
+                //Sand is first element to draw by brush
+                if(brush_element < Board::ElementType::SAND) brush_element = Board::ElementType::FIRE;
+
+                brush_element_text_update(brush_element);
+            }
         }
     }
+}
+
+void Game::brush_element_text_update(int brush_element)
+{
+    this->brush_element_text->setString(brush_element_text_data_vector[brush_element].element_name);
+    this->brush_element_text->setFillColor(brush_element_text_data_vector[brush_element].color);
 }
 
 void Game::render()
@@ -128,6 +174,8 @@ void Game::render()
     this->window->clear();
 
     board_draw();
+    this->window->draw(brush_outline);
+    this->window->draw(*this->brush_element_text);
 
     this->window->display();
 }
@@ -151,4 +199,5 @@ Game::~Game()
 {
     delete this->window;
     delete this->sprite;
+    delete this->brush_element_text;
 }

@@ -16,7 +16,6 @@ private:
     std::random_device rd;
     std::mt19937 gen;
     std::uniform_int_distribution<> dist_bool;
-    std::uniform_int_distribution<> dist_viscosity;
     std::uniform_int_distribution<> dist_1_100;
     std::uniform_int_distribution<> dist_0_2;
 
@@ -49,7 +48,9 @@ public:
         STONE,
         WOOD,
         WATER,
+        OIL,
         STEAM,
+        SMOKE,
         FIRE,
     };
 
@@ -75,7 +76,7 @@ public:
 
     //Functions
     void grid_update();
-    void brush_tool(int y, int x, int brush_size, ElementType elementType);
+    void brush_tool(int y, int x, int brush_size, int elementType);
     void clear_board();
 
     //EMPTY

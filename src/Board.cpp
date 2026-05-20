@@ -390,49 +390,75 @@ bool Board::in_bounds(int new_y, int new_x)
 }
 
 
-void Board::brush_tool(int y, int x, int brush_size, ElementType tool)
+void Board::brush_tool(int y, int x, int brush_size, int tool)
 {
-    for (int i = -brush_size / 2; i <= brush_size / 2; i++)
+
+    for(int i = -brush_size / 2; i <= brush_size / 2; i++)
     {
-        for (int j = -brush_size / 2; j <= brush_size / 2; j++)
+        for(int j = -brush_size / 2; j <= brush_size / 2; j++)
         {
             if (y + i < 0 || y + i >= max_grid_H)
                 continue;
             if (x + j < 0 || x + j >= max_grid_W)
                 continue;
 
-            auto &cell = grid[y + i][x + j];
+            auto& cell = grid[y + i][x + j];
 
-            if (tool == ElementType::EMPTY)
+
+            // Empty
+            if(tool == ElementType::EMPTY)
             {
                 cell = empty_cell();
                 continue;
             }
 
-            if (tool == ElementType::STONE)
+            if(cell.elementType != EMPTY) continue;
+
+            //SOLID -> WHOLE SQUARE
+
+            if(tool == ElementType::STONE)
             {
                 cell = stone_cell();
                 continue;
             }
-            if (tool == ElementType::WOOD)
+
+            if(tool == ElementType::WOOD)
             {
                 cell = wood_cell();
                 continue;
             }
 
-            if (cell.elementType == EMPTY && dist_1_100(gen) == 1)
+            //ELSE THEN SOLID -> RANDOM
+            if(dist_1_100(gen) != 1) continue;
+
+            if(tool == ElementType::SAND)
             {
-                if (tool == ElementType::SAND)
-                    cell = sand_cell();
+                cell = sand_cell();
+                continue;
+            }
 
-                else if (tool == ElementType::WATER)
-                    cell = water_cell();
+            if(tool == ElementType::ASH)
+            {
+                cell = ash_cell();
+                continue;
+            }
 
-                else if (tool == ElementType::STEAM)
-                    cell = steam_cell();
+            if(tool == ElementType::WATER)
+            {
+                cell = water_cell();
+                continue;
+            }
 
-                else if (tool == ElementType::FIRE)
-                    cell = fire_cell();
+            if(tool == ElementType::STEAM)
+            {
+                cell = steam_cell();
+                continue;
+            }
+
+            if(tool == ElementType::FIRE)
+            {
+                cell = fire_cell();
+                continue;
             }
         }
     }
@@ -526,15 +552,10 @@ Board::GridCell Board::wood_cell()
         sf::Color(90, 45, 0, 255)
     };
 
-    sf::Color color;
-    int random = dist_1_100(gen);
-    if(random < 65) color = wood_colors[0];
-    else color = wood_colors[1];
-
     GridCell cell = {};
 
     cell.elementType = ElementType::WOOD;
-    cell.color = color,
+    cell.color = wood_colors[dist_bool(gen)],
     cell.density = 10;
     cell.age = 0;
     cell.fuel = 100;
