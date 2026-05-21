@@ -7,7 +7,7 @@ Board::Board(int width, int height)
     max_grid_W = width;
 
     is_paused = false;
-    can_render_next_frame = false;
+    can_render_next_frame_in_pause = false;
 
     clear_board();
 
@@ -20,10 +20,14 @@ Board::Board(int width, int height)
     side_to_update = 1;
 }
 
+void Board::clear_board()
+{
+    grid = std::vector<std::vector<GridCell>>(max_grid_H, std::vector<GridCell>(max_grid_W, empty_cell()));
+}
 
 void Board::grid_update()
 {
-    if(is_paused && !can_render_next_frame) return;
+    if(is_paused && !can_render_next_frame_in_pause) return;
 
     //Change all cells into not updated state 
     for(auto& row : grid)
@@ -46,166 +50,41 @@ void Board::grid_update()
             {
                 case ElementType::SAND: update_sand(y, x); break;
                 case ElementType::ASH: update_ash(y, x); break;
+                case ElementType::GUNPOWDER: update_gunpowder(y, x); break;
                 case ElementType::WOOD: update_wood(y, x); break;
                 case ElementType::WATER: update_water(y, x); break;
-                case ElementType::STEAM: update_steam(y, x); break;
+                case ElementType::GASOLINE: update_gasoline(y, x); break;
+                case ElementType::ACID: update_acid(y, x); break;
+                case ElementType::HYDROGEN: update_hydrogen(y, x); break;
+                case ElementType::SMOKE: update_smoke(y, x); break;
                 case ElementType::FIRE: update_fire(y, x); break;
                 default: break;
             }
         }
     }
 
-    can_render_next_frame = false;
+    can_render_next_frame_in_pause = false;
 
     side_to_update = (side_to_update == 1) ? 2 : 1;
 }
-
-void Board::update_sand(int y, int x)
-{
-    auto& cell = grid[y][x];
-
-    if(cell.has_been_updated) return;
-
-    cell.has_been_updated = true;
-
-    cell.age++;
-
-    int ny = y, nx = x;
-
-    bool moved = powder_gravity(y, x, ny, nx);
-
-    if(moved) std::swap(grid[y][x], grid[ny][nx]);
-}
-
-
-void Board::update_water(int y, int x)
-{
-    auto& cell = grid[y][x];
-
-    if(cell.has_been_updated) return;
-
-    cell.has_been_updated = true;
-
-    cell.age++;
-
-    int ny = y, nx = x;
-
-    bool moved = liquid_gravity(y, x, ny, nx);
-
-    if(moved) std::swap(grid[y][x], grid[ny][nx]);
-}
-
-void Board::update_steam(int y, int x)
-{
-    auto& cell = grid[y][x];
-
-    if(cell.has_been_updated) return;
-
-    grid[y][x].has_been_updated = true;
-
-    cell.age++;
-
-    int ny = y, nx = x;
-
-    bool moved = gas_gravity(y, x, ny, nx);
-
-    if(moved) std::swap(grid[y][x], grid[ny][nx]);
-}
-
-void Board::update_fire(int y, int x)
-{
-    auto& cell = grid[y][x];
-
-    if(cell.has_been_updated) return;
-
-    cell.has_been_updated = true;
-
-    cell.age++;
-
-    cell.color = {255, static_cast<uint8_t>(std::min(cell.age * 15, 255)), 0, 255};
-
-    if(cell.age > 20)
-    {
-        cell = {EMPTY, sf::Color::Black, 0, false, 0, 0, true};
-        return;
-    }
-
-    int ran_y = y + dist_0_2(gen) - 1;
-    int ran_x = x + dist_0_2(gen) - 1; // ran val 0-2
-
-    if (in_bounds(ran_y, ran_x))
-    {
-        auto& ran_cell = grid[ran_y][ran_x];
-
-        if(ran_cell.is_flammable) ran_cell.is_burning = true;
-    }
-
-    ran_y = y - dist_bool(gen);
-    ran_x = x + dist_0_2(gen) - 1; // ran val 0-2
-
-    if (in_bounds(ran_y, ran_x))
-    {
-        auto& ran_cell = grid[ran_y][ran_x];
-
-        if (ran_cell.elementType == EMPTY) std::swap(cell, ran_cell);
-    }
-}
-
-void Board::update_wood(int y, int x)
-{
-    auto& cell = grid[y][x];
-
-    if(cell.has_been_updated) return;
-
-    cell.has_been_updated = true;
-
-    if(cell.is_burning)
-    {
-
-        cell.fuel--;
-
-        int ran_y = y + dist_0_2(gen) - 1;
-        int ran_x = x + dist_0_2(gen) - 1;
-
-        if (in_bounds(ran_y, ran_x))
-        {
-            if (grid[ran_y][ran_x].elementType == EMPTY) grid[ran_y][ran_x] = fire_cell();
-        }
-    }
-
-    if(cell.fuel <= 0)
-    {
-        int random = dist_1_100(gen);
-
-        if(random >= 5) cell = empty_cell();
-        else cell = ash_cell();
-    }
-}
-
-void Board::update_ash(int y, int x)
-{
-    auto& cell = grid[y][x];
-
-    if(cell.has_been_updated) return;
-
-    cell.has_been_updated = true;
-
-    int random = dist_1_100(gen);
-
-    if(random > 80)
-    {
-        int ran_x = x + dist_0_2(gen) - 1;
-
-        if(can_swap(y, x, y + 1, ran_x)) std::swap(cell, grid[y + 1][ran_x]);
-    }
-}
-
 
 bool Board::powder_gravity(int y, int x, int& ny, int& nx)
 {
     bool can_down = can_swap(y, x, y + 1, x);
     if(can_down)
     {
+        if(dist_1_100(gen) > 80)
+        {
+            int move[] = {-1, 1};
+
+            int dir = move[dist_bool(gen)];
+
+            if(can_swap(y, x, y + 1, x + dir))
+            {
+                nx = x + dir;
+            }
+            else nx = x;
+        }
         ny = y + 1;
         return true;
     }
@@ -236,6 +115,18 @@ bool Board::liquid_gravity(int y, int x, int& ny, int& nx)
     bool can_down = can_swap(y, x, y + 1, x);
     if (can_down)
     {
+        if(dist_1_100(gen) > 80)
+        {
+            int move[] = {-1, 1};
+
+            int dir = move[dist_bool(gen)];
+
+            if(can_swap(y, x, y + 1, x + dir))
+            {
+                nx = x + dir;
+            }
+            else nx = x;
+        }
         ny = y + 1;
         return true;
     }
@@ -306,6 +197,18 @@ bool Board::gas_gravity(int y, int x, int& ny, int& nx)
 
     if(can_up)
     {
+        if(dist_1_100(gen) > 50)
+        {
+            int move[] = {-1, 1};
+
+            int dir = move[dist_bool(gen)];
+
+            if(can_swap(y, x, y - 1, x + dir))
+            {
+                nx = x + dir;
+            }
+            else nx = x;
+        }
         ny = y - 1;
         return true;
     }
@@ -443,15 +346,39 @@ void Board::brush_tool(int y, int x, int brush_size, int tool)
                 continue;
             }
 
+            if(tool == ElementType::GUNPOWDER)
+            {
+                cell = gunpowder_cell();
+                continue;
+            }
+
             if(tool == ElementType::WATER)
             {
                 cell = water_cell();
                 continue;
             }
 
-            if(tool == ElementType::STEAM)
+            if(tool == ElementType::GASOLINE)
             {
-                cell = steam_cell();
+                cell = gasoline_cell();
+                continue;
+            }
+
+            if(tool == ElementType::ACID)
+            {
+                cell = acid_cell();
+                continue;
+            }
+
+            if(tool == ElementType::HYDROGEN)
+            {
+                cell = hydrogen_cell();
+                continue;
+            }
+
+            if(tool == ElementType::SMOKE)
+            {
+                cell = smoke_cell();
                 continue;
             }
 
@@ -464,10 +391,364 @@ void Board::brush_tool(int y, int x, int brush_size, int tool)
     }
 }
 
-void Board::clear_board()
+//POWDER
+
+void Board::update_sand(int y, int x)
 {
-    grid = std::vector<std::vector<GridCell>>(max_grid_H, std::vector<GridCell>(max_grid_W, empty_cell()));
+    auto& cell = grid[y][x];
+
+    if(cell.has_been_updated) return;
+
+    cell.has_been_updated = true;
+
+    cell.age++;
+
+    int ny = y, nx = x;
+
+    bool moved = powder_gravity(y, x, ny, nx);
+
+    if(moved) std::swap(grid[y][x], grid[ny][nx]);
 }
+
+void Board::update_ash(int y, int x)
+{
+    auto& cell = grid[y][x];
+
+    if(cell.has_been_updated) return;
+
+    cell.has_been_updated = true;
+
+    int random = dist_1_100(gen);
+
+    if(random > 80)
+    {
+        int ran_x = x + dist_0_2(gen) - 1;
+
+        if(can_swap(y, x, y + 1, ran_x)) std::swap(cell, grid[y + 1][ran_x]);
+    }
+}
+
+void Board::update_gunpowder(int y, int x)
+{
+    auto& cell = grid[y][x];
+
+    if(cell.has_been_updated) return;
+
+    cell.has_been_updated = true;
+
+    cell.age++;
+
+    if(cell.is_burning)
+    {
+        cell.fuel--;
+
+        int ran_y = y + dist_0_2(gen) - 1;
+        int ran_x = x + dist_0_2(gen) - 1;
+
+        if (in_bounds(ran_y, ran_x))
+        {
+            if (grid[ran_y][ran_x].elementType == EMPTY) grid[ran_y][ran_x] = fire_cell();
+        }
+    }
+
+    if(cell.fuel <= 0)
+    {
+        for(int i = -1; i <= 1; i++)
+        {
+            for(int j = -1; j <= 1; j++)
+            {
+                if(i == 0 && j == 0) continue;
+
+                if(!in_bounds(y + i, x + j)) continue;
+
+                if(grid[y + i][x + j].is_flammable) grid[y + i][x + j].is_burning = true;
+            }
+        }
+
+        cell = empty_cell();
+        return;
+    }
+
+    int ny = y, nx = x;
+
+    bool moved = powder_gravity(y, x, ny, nx);
+
+    if(moved) std::swap(grid[y][x], grid[ny][nx]);
+}
+
+//SOLID
+
+void Board::update_wood(int y, int x)
+{
+    auto& cell = grid[y][x];
+
+    if(cell.has_been_updated) return;
+
+    cell.has_been_updated = true;
+
+    if(cell.is_burning)
+    {
+        cell.fuel--;
+
+        int ran_y = y + dist_0_2(gen) - 1;
+        int ran_x = x + dist_0_2(gen) - 1;
+
+        if(in_bounds(ran_y, ran_x))
+        {
+            if (grid[ran_y][ran_x].elementType == EMPTY) grid[ran_y][ran_x] = fire_cell();
+        }
+
+        if (dist_0_2(gen) == 0)
+        {
+            int sy = y + dist_0_2(gen) - 1;
+            int sx = x + dist_0_2(gen) - 1;
+
+            if (in_bounds(sy, sx) && grid[sy][sx].elementType == EMPTY)
+            {
+                grid[sy][sx] = smoke_cell();
+            }
+        }
+    }
+
+    if(cell.fuel <= 0)
+    {
+        for(int i = -1; i <= 1; i++)
+        {
+            for(int j = -1; j <= 1; j++)
+            {
+                if(i == 0 && j == 0) continue;
+
+                if(!in_bounds(y + i, x + j)) continue;
+
+                if(grid[y + i][x + j].is_flammable) grid[y + i][x + j].is_burning = true;
+            }
+        }
+
+        int random = dist_1_100(gen);
+
+        if(random >= 5) cell = empty_cell();
+        else cell = ash_cell();
+    }
+}
+
+//LIQUID
+
+void Board::update_water(int y, int x)
+{
+    auto& cell = grid[y][x];
+
+    if(cell.has_been_updated) return;
+
+    cell.has_been_updated = true;
+
+    cell.age++;
+
+    int ny = y, nx = x;
+
+    bool moved = liquid_gravity(y, x, ny, nx);
+
+    if(moved) std::swap(grid[y][x], grid[ny][nx]);
+}
+
+void Board::update_gasoline(int y, int x)
+{
+    auto& cell = grid[y][x];
+
+    if(cell.has_been_updated) return;
+
+    cell.has_been_updated = true;
+
+    cell.age++;
+
+    int ny = y, nx = x;
+
+    if(cell.is_burning)
+    {
+        cell.fuel--;
+
+        int ran_y = y + dist_0_2(gen) - 1;
+        int ran_x = x + dist_0_2(gen) - 1;
+
+        if (in_bounds(ran_y, ran_x))
+        {
+            if (grid[ran_y][ran_x].elementType == EMPTY) grid[ran_y][ran_x] = fire_cell();
+        }
+    }
+
+    if(cell.fuel <= 0)
+    {
+        for(int i = -1; i <= 1; i++)
+        {
+            for(int j = -1; j <= 1; j++)
+            {
+                if(i == 0 && j == 0) continue;
+
+                if(!in_bounds(y + i, x + j)) continue;
+
+                if(grid[y + i][x + j].is_flammable) grid[y + i][x + j].is_burning = true;
+            }
+        }
+
+        cell = empty_cell();
+        return;
+    }
+
+    bool moved = liquid_gravity(y, x, ny, nx);
+
+    if(moved) std::swap(grid[y][x], grid[ny][nx]);
+}
+
+void Board::update_acid(int y, int x)
+{
+    auto& cell = grid[y][x];
+
+    if(cell.has_been_updated) return;
+
+    cell.has_been_updated = true;
+
+    cell.age++;
+
+    int ran_y = y + dist_0_2(gen) - 1;
+    int ran_x = x + dist_0_2(gen) - 1;
+
+    if(in_bounds(ran_y,ran_x))
+    {
+        int random = dist_1_100(gen);
+
+        if(grid[ran_y][ran_x].elementType == ElementType::SAND || grid[ran_y][ran_x].elementType == ElementType::ASH || grid[ran_y][ran_x].elementType == ElementType::GUNPOWDER || grid[ran_y][ran_x].elementType == ElementType::WOOD)
+        {
+            if(random > 10) return;
+
+            grid[ran_y][ran_x] = empty_cell();
+            cell = empty_cell();
+            return;
+        }
+    }
+
+    int ny = y, nx = x;
+
+    bool moved = liquid_gravity(y, x, ny, nx);
+
+    if(moved) std::swap(grid[y][x], grid[ny][nx]);
+}
+
+//GAS
+
+void Board::update_hydrogen(int y, int x)
+{
+    auto& cell = grid[y][x];
+
+    if(cell.has_been_updated) return;
+
+    grid[y][x].has_been_updated = true;
+
+    cell.age++;
+
+    if(cell.is_burning)
+    {
+        cell.fuel--;
+
+        int ran_y = y + dist_0_2(gen) - 1;
+        int ran_x = x + dist_0_2(gen) - 1;
+
+        if (in_bounds(ran_y, ran_x))
+        {
+            if (grid[ran_y][ran_x].elementType == EMPTY) grid[ran_y][ran_x] = fire_cell();
+        }
+    }
+
+    if(cell.fuel <= 0)
+    {
+        for(int i = -1; i <= 1; i++)
+        {
+            for(int j = -1; j <= 1; j++)
+            {
+                if(i == 0 && j == 0) continue;
+
+                if(!in_bounds(y + i, x + j)) continue;
+
+                if(grid[y + i][x + j].is_flammable) grid[y + i][x + j].is_burning = true;
+            }
+        }
+
+        cell = empty_cell();
+        return;
+    }
+
+    int ny = y, nx = x;
+
+    bool moved = gas_gravity(y, x, ny, nx);
+
+    if(moved) std::swap(grid[y][x], grid[ny][nx]);
+}
+
+void Board::update_smoke(int y, int x)
+{
+    auto& cell = grid[y][x];
+
+    if(cell.has_been_updated) return;
+
+    grid[y][x].has_been_updated = true;
+
+    cell.age++;
+
+    int random_max_age = std::uniform_int_distribution<>(60, 100)(gen);
+
+    if(cell.age >= random_max_age)
+    {
+        cell = empty_cell();
+        return;
+    }
+
+    int ny = y, nx = x;
+
+    bool moved = gas_gravity(y, x, ny, nx);
+
+    if(moved) std::swap(grid[y][x], grid[ny][nx]);
+}
+
+//OTHER
+
+void Board::update_fire(int y, int x)
+{
+    auto& cell = grid[y][x];
+
+    if(cell.has_been_updated) return;
+
+    cell.has_been_updated = true;
+
+    cell.age++;
+
+    cell.color = {255, static_cast<uint8_t>(std::min(cell.age * 15, 255)), 0, 255};
+
+    if(cell.age > 20)
+    {
+        cell = {EMPTY, sf::Color::Black, 0, false, 0, 0, true};
+        return;
+    }
+
+    int ran_y = y + dist_0_2(gen) - 1;
+    int ran_x = x + dist_0_2(gen) - 1; // ran val 0-2
+
+    if (in_bounds(ran_y, ran_x))
+    {
+        auto& ran_cell = grid[ran_y][ran_x];
+
+        if(ran_cell.is_flammable) ran_cell.is_burning = true;
+    }
+
+    ran_y = y - dist_bool(gen);
+    ran_x = x + dist_0_2(gen) - 1; // ran val -1, 0, -1
+
+    if (in_bounds(ran_y, ran_x))
+    {
+        auto& ran_cell = grid[ran_y][ran_x];
+
+        if (ran_cell.elementType == EMPTY) std::swap(cell, ran_cell);
+    }
+}
+
+
 
 Board::GridCell Board::empty_cell()
 {
@@ -509,14 +790,42 @@ Board::GridCell Board::sand_cell()
 
 Board::GridCell Board::ash_cell()
 {
+    std::array<sf::Color, 3> ash_colors{
+        sf::Color(211, 211, 211, 255),
+        sf::Color(170, 170, 170, 255),
+        sf::Color(120, 120, 120, 255)
+    };
+
     GridCell cell = {};
 
     cell.elementType = ElementType::ASH;
-    cell.color = {211, 211, 211, 255},
+    cell.color = ash_colors[dist_0_2(gen)],
     cell.density = 10;
     cell.age = 0;
     cell.fuel = 0;
     cell.is_flammable = false;
+    cell.is_burning = false;
+    cell.has_been_updated = false;
+
+    return cell;
+}
+
+Board::GridCell Board::gunpowder_cell()
+{
+    std::array<sf::Color, 3> gunpowder_colors{
+        sf::Color(50, 50, 50, 255),
+        sf::Color(70, 70, 70, 255),
+        sf::Color(60, 55, 45, 255)
+    };
+
+    GridCell cell = {};
+
+    cell.elementType = ElementType::GUNPOWDER;
+    cell.color = gunpowder_colors[dist_0_2(gen)],
+    cell.density = 10;
+    cell.age = 0;
+    cell.fuel = 2;
+    cell.is_flammable = true;
     cell.is_burning = false;
     cell.has_been_updated = false;
 
@@ -552,13 +861,15 @@ Board::GridCell Board::wood_cell()
         sf::Color(90, 45, 0, 255)
     };
 
+    int random_fuel = std::uniform_int_distribution<>(50, 150)(gen);
+
     GridCell cell = {};
 
     cell.elementType = ElementType::WOOD;
     cell.color = wood_colors[dist_bool(gen)],
     cell.density = 10;
     cell.age = 0;
-    cell.fuel = 100;
+    cell.fuel = random_fuel;
     cell.is_flammable = true;
     cell.is_burning = false;
     cell.has_been_updated = false;
@@ -582,12 +893,60 @@ Board::GridCell Board::water_cell()
     return cell;
 }
 
-Board::GridCell Board::steam_cell()
+Board::GridCell Board::gasoline_cell()
 {
     GridCell cell = {};
 
-    cell.elementType = ElementType::STEAM;
-    cell.color = {255, 255, 255, 200}; 
+    cell.elementType = ElementType::GASOLINE;
+    cell.color = {200, 180, 90, 255}; 
+    cell.density = 4;
+    cell.age = 0;
+    cell.fuel = 10;
+    cell.is_flammable = true;
+    cell.is_burning = false;
+    cell.has_been_updated = false;
+
+    return cell;
+}
+
+Board::GridCell Board::acid_cell()
+{
+    GridCell cell = {};
+
+    cell.elementType = ElementType::ACID;
+    cell.color = {144, 238, 144, 255}; 
+    cell.density = 5;
+    cell.age = 0;
+    cell.fuel = 0;
+    cell.is_flammable = false;
+    cell.is_burning = false;
+    cell.has_been_updated = false;
+
+    return cell;
+}
+
+Board::GridCell Board::hydrogen_cell()
+{
+    GridCell cell = {};
+
+    cell.elementType = ElementType::HYDROGEN;
+    cell.color = {200, 220, 255, 100}; 
+    cell.density = 1;
+    cell.age = 0;
+    cell.fuel = 1;
+    cell.is_flammable = true;
+    cell.is_burning = false;
+    cell.has_been_updated = false;
+
+    return cell;
+}
+
+Board::GridCell Board::smoke_cell()
+{   
+    GridCell cell = {};
+
+    cell.elementType = ElementType::SMOKE;
+    cell.color = {90, 90, 90, 200}; 
     cell.density = 1;
     cell.age = 0;
     cell.fuel = 0;

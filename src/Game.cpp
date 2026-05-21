@@ -30,12 +30,14 @@ void Game::init_brush()
         {"EMPTY", sf::Color::White},
         {"SAND", sf::Color::Yellow},
         {"ASH", {211, 211, 211, 255}},
+        {"GUNPOWDER", {50, 50, 50, 255}},
         {"STONE", {105, 105, 105, 255}},
         {"WOOD", {150, 75, 0, 255}},
         {"WATER", {30, 144, 255, 255}},
-        {"OIL", {64, 49, 37, 255}},
-        {"STEAM", {255, 255, 255, 200}},
-        {"SMOKE", {10, 10, 10, 255}},
+        {"GASOLINE", {200, 180, 90, 255}},
+        {"ACID", {144, 238, 144, 255}},
+        {"HYDROGEN", {200, 220, 255, 100}},
+        {"SMOKE", {90, 90, 90, 200}},
         {"FIRE", sf::Color::Red}
     };
 
@@ -106,16 +108,21 @@ void Game::event()
         else if(auto* key = event->getIf<sf::Event::KeyPressed>())
         {
             if(key->scancode == sf::Keyboard::Scancode::LShift)
+            {
                 left_shift_down = true;
-            
+            }
             else if(key->scancode == sf::Keyboard::Scancode::Space)
+            {
                 board.is_paused = !board.is_paused;
-
+            }
             else if(key->scancode == sf::Keyboard::Scancode::Right)
-                if(board.is_paused) board.can_render_next_frame = true;
-
+            {
+                if(board.is_paused) board.can_render_next_frame_in_pause = true;
+            }
             else if(key->scancode == sf::Keyboard::Scancode::Delete)
+            {
                 board.clear_board();
+            }
         }
         else if(auto* key = event->getIf<sf::Event::KeyReleased>())
         {

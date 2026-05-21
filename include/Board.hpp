@@ -31,11 +31,15 @@ private:
         bool in_bounds(int new_y, int new_x);
 
     void update_sand(int y, int x);
-    void update_water(int y, int x);
-    void update_steam(int y, int x);
-    void update_fire(int y, int x);
-    void update_wood(int y, int x);
     void update_ash(int y, int x);
+    void update_gunpowder(int y, int x);
+    void update_wood(int y, int x);
+    void update_water(int y, int x);
+    void update_gasoline(int y, int x);
+    void update_acid(int y, int x);
+    void update_hydrogen(int y, int x);
+    void update_smoke(int y, int x);
+    void update_fire(int y, int x);
 
 
 public:
@@ -45,11 +49,13 @@ public:
         EMPTY = 0,
         SAND,
         ASH,
+        GUNPOWDER,
         STONE,
         WOOD,
         WATER,
-        OIL,
-        STEAM,
+        GASOLINE,
+        ACID,
+        HYDROGEN,
         SMOKE,
         FIRE,
     };
@@ -70,7 +76,7 @@ public:
     int max_grid_W;
 
     bool is_paused;
-    bool can_render_next_frame;
+    bool can_render_next_frame_in_pause;
 
     std::vector<std::vector<GridCell>> grid;
 
@@ -85,6 +91,7 @@ public:
     //POWDER
     GridCell sand_cell();
     GridCell ash_cell();
+    GridCell gunpowder_cell();
 
     //SOLID
     GridCell stone_cell();
@@ -92,9 +99,12 @@ public:
 
     //LIQUID
     GridCell water_cell();
+    GridCell gasoline_cell();
+    GridCell acid_cell();
 
     //GAS
-    GridCell steam_cell();
+    GridCell hydrogen_cell();
+    GridCell smoke_cell();
 
     //OTHER
     GridCell fire_cell();
