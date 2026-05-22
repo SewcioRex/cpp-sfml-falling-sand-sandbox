@@ -17,3 +17,9 @@ add_executable(${PROJECT_NAME} src/main.cpp src/Game.cpp src/Board.cpp)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 target_link_libraries(${PROJECT_NAME} PRIVATE SFML::Graphics)
+
+add_custom_command(TARGET Sandbox POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets
+    $<TARGET_FILE_DIR:Sandbox>/assets
+)
