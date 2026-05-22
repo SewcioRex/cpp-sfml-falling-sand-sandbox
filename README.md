@@ -36,6 +36,8 @@ A sandbox simulation inspired by the falling sand genre, written in C++ using SF
 - CMake 3.28+
 - C++17 compatible compiler (GCC, Clang, MSVC)
 
+> On Windows, Visual Studio C++ Build Tools (MSVC) may be required.
+
 ### Build:
 ```bash
 git clone https://github.com/SewcioRex/cpp-sfml-falling-sand-sandbox.git
