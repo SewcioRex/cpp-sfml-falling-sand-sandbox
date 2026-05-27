@@ -315,7 +315,7 @@ void Board::brush_tool(int y, int x, int brush_size, int tool)
                 continue;
             }
 
-            if(cell.elementType != EMPTY) continue;
+            if(cell.elementType != ElementType::EMPTY) continue;
 
             //SOLID -> WHOLE SQUARE
 
@@ -447,7 +447,7 @@ void Board::update_gunpowder(int y, int x)
 
         if (in_bounds(ran_y, ran_x))
         {
-            if (grid[ran_y][ran_x].elementType == EMPTY) grid[ran_y][ran_x] = fire_cell();
+            if (grid[ran_y][ran_x].elementType == ElementType::EMPTY) grid[ran_y][ran_x] = fire_cell();
         }
     }
 
@@ -495,7 +495,7 @@ void Board::update_wood(int y, int x)
 
         if(in_bounds(ran_y, ran_x))
         {
-            if (grid[ran_y][ran_x].elementType == EMPTY) grid[ran_y][ran_x] = fire_cell();
+            if (grid[ran_y][ran_x].elementType == ElementType::EMPTY) grid[ran_y][ran_x] = fire_cell();
         }
 
         if (dist_0_2(gen) == 0)
@@ -503,7 +503,7 @@ void Board::update_wood(int y, int x)
             int sy = y + dist_0_2(gen) - 1;
             int sx = x + dist_0_2(gen) - 1;
 
-            if (in_bounds(sy, sx) && grid[sy][sx].elementType == EMPTY)
+            if (in_bounds(sy, sx) && grid[sy][sx].elementType == ElementType::EMPTY)
             {
                 grid[sy][sx] = smoke_cell();
             }
@@ -571,7 +571,7 @@ void Board::update_gasoline(int y, int x)
 
         if (in_bounds(ran_y, ran_x))
         {
-            if (grid[ran_y][ran_x].elementType == EMPTY) grid[ran_y][ran_x] = fire_cell();
+            if (grid[ran_y][ran_x].elementType == ElementType::EMPTY) grid[ran_y][ran_x] = fire_cell();
         }
     }
 
@@ -653,7 +653,7 @@ void Board::update_hydrogen(int y, int x)
 
         if (in_bounds(ran_y, ran_x))
         {
-            if (grid[ran_y][ran_x].elementType == EMPTY) grid[ran_y][ran_x] = fire_cell();
+            if (grid[ran_y][ran_x].elementType == ElementType::EMPTY) grid[ran_y][ran_x] = fire_cell();
         }
     }
 
@@ -723,7 +723,7 @@ void Board::update_fire(int y, int x)
 
     if(cell.age > 20)
     {
-        cell = {EMPTY, sf::Color::Black, 0, false, 0, 0, true};
+        cell = {ElementType::EMPTY, sf::Color::Black, 0, false, 0, 0, true};
         return;
     }
 
@@ -744,7 +744,7 @@ void Board::update_fire(int y, int x)
     {
         auto& ran_cell = grid[ran_y][ran_x];
 
-        if (ran_cell.elementType == EMPTY) std::swap(cell, ran_cell);
+        if (ran_cell.elementType == ElementType::EMPTY) std::swap(cell, ran_cell);
     }
 }
 

@@ -1,5 +1,4 @@
 #include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 
@@ -12,6 +11,7 @@ class Game
 {
 private:
     int scale;
+    sf::Vector2u simulation_size;
 
     //BoardS
     Board board;
@@ -19,15 +19,15 @@ private:
     //Render
     sf::Image image;
     sf::Texture texture;
-    sf::Sprite* sprite;
+    sf::Sprite sprite;
 
     //UI
     sf::RectangleShape brush_outline;
     sf::Font pixel_font;
-    sf::Text* brush_element_text;
+    sf::Text brush_element_text;
 
     //Window
-    sf::RenderWindow* window;
+    sf::RenderWindow window;
 
     //Brush
     struct BrushelementTextData
@@ -48,15 +48,14 @@ private:
 
     //Functions
         //Init functions
-    void init_variables(int width, int height);
-    void init_window(unsigned int width, unsigned int height);
-    void init_brush();
-    void init_render_data(int width, int height);
+    void init_brush_variable();
+
+    void update_brush_tool();
 
 
     void event();
     void board_draw();
-    void brush_element_text_update(int brush_element);
+    void brush_element_text_update();
     
 public:
     //Functions
@@ -66,8 +65,6 @@ public:
     const bool is_running() const;
 
     //Constructor // Deconstructor
-    Game(int w = 800, int h = 600);
-    virtual ~Game();
-
+    Game(sf::Vector2u win_size = {500, 500});
 };
 

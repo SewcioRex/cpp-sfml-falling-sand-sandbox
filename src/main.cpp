@@ -2,7 +2,7 @@
 
 int main()
 {
-    Game game(1440, 720);
+    Game game({1440, 720});
 
     while(game.is_running())
     {

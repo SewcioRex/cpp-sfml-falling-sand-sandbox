@@ -21,6 +21,8 @@ private:
 
     int side_to_update;
 
+    int element_type_tool;
+
     //Functions
 
     bool powder_gravity(int y, int x, int& ny, int& nx);
@@ -44,6 +46,7 @@ private:
 
 public:
     //Variables
+
     enum ElementType
     {
         EMPTY = 0,
@@ -59,7 +62,6 @@ public:
         SMOKE,
         FIRE,
     };
-
     struct GridCell
     {
         ElementType elementType;
@@ -82,7 +84,7 @@ public:
 
     //Functions
     void grid_update();
-    void brush_tool(int y, int x, int brush_size, int elementType);
+    void brush_tool(int y, int x, int brush_size, int tool);
     void clear_board();
 
     //EMPTY

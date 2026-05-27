@@ -21,8 +21,8 @@ A sandbox simulation inspired by the falling sand genre, written in C++ using SF
 ### Brush
 - `Mouse Left Button` - Draw
 - `Mouse Right Button` - Erase
-- `Mouse Wheel` - Change Element
-- `Mouse Wheel + Left Shift` - Change Brush Size
+- `Mouse Wheel` - Change Brush Size
+- `Mouse Wheel + Left Shift` - Change Element
 
 ### Simulation
 - `Delete` - Clear Board
@@ -33,8 +33,8 @@ A sandbox simulation inspired by the falling sand genre, written in C++ using SF
 ## Build & Run:
 - SFML is automatically fetched via CMake (FetchContent)
 ### Requirements:
-- CMake 3.28+
-- C++17 compatible compiler (GCC, Clang, MSVC)
+- CMake 3.16+
+- C++20 compatible compiler (GCC, Clang, MSVC)
 
 > On Windows, Visual Studio C++ Build Tools (MSVC) may be required.
 
