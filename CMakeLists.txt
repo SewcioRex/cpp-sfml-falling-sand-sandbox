@@ -13,7 +13,7 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(${PROJECT_NAME} src/main.cpp src/Game.cpp src/Board.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/Game.cpp src/Board.cpp src/Brush.cpp)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 target_link_libraries(${PROJECT_NAME} PRIVATE SFML::Graphics SFML::System SFML::Window)

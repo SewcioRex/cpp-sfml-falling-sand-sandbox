@@ -2,8 +2,9 @@
 
 Game::Game(sf::Vector2u win_size) 
 : scale(3)
-, simulation_size(win_size.x / scale, win_size.y / scale)
+, brush(scale)
 , board(simulation_size.x, simulation_size.y)
+, simulation_size(win_size.x / scale, win_size.y / scale)
 , texture(sf::Vector2u(simulation_size.x, simulation_size.y))
 , sprite(texture)
 , brush_element_text(pixel_font)
@@ -15,7 +16,7 @@ Game::Game(sf::Vector2u win_size)
     //Window
     window = sf::RenderWindow(sf::VideoMode(win_size), "Sandbox", sf::Style::Titlebar | sf::Style::Close);
 
-    //Render Variable
+    //Render
     image.resize(sf::Vector2u(simulation_size.x, simulation_size.y));
     sprite.setScale(sf::Vector2f(scale, scale));
 
@@ -26,7 +27,7 @@ void Game::init_brush_variable()
 {
     //Brush Text Data Vector
     brush_element_text_data_vector = {
-        {"EMPTY", sf::Color::White},
+        {"ERASE", sf::Color::White},
         {"SAND", sf::Color::Yellow},
         {"ASH", {211, 211, 211, 255}},
         {"GUNPOWDER", {50, 50, 50, 255}},
@@ -39,18 +40,6 @@ void Game::init_brush_variable()
         {"SMOKE", {90, 90, 90, 200}},
         {"FIRE", sf::Color::Red}
     };
-
-    //Start Brush Data
-    brush_size = 5;
-    brush_element = Board::ElementType::SAND;
-
-
-    //Brush Outline Shape
-    brush_outline.setSize({10.f, 10.f});
-    brush_outline.setScale(sf::Vector2f(scale, scale));
-    brush_outline.setFillColor(sf::Color::Transparent);
-    brush_outline.setOutlineColor({212, 217, 219, 150});
-    brush_outline.setOutlineThickness(0.5f);
 
     //Font load
     if(!pixel_font.openFromFile("assets/fonts/PixelatedEleganceRegular-ovawB.ttf")) std::cout << "Error: Font error\n";
@@ -79,22 +68,24 @@ void Game::update_brush_tool()
 {
     sf::Vector2i mouse_pos = {sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y};
 
-    brush_outline.setSize({static_cast<float>(brush_size), static_cast<float>(brush_size)});
-    brush_outline.setPosition({static_cast<float>(mouse_pos.x) - (brush_size * scale) / 2, static_cast<float>(mouse_pos.y) - (brush_size * scale) / 2});
+    brush.update_outline(mouse_pos, scale);
 
     //Spawn elements
-    if(mouse_left_hold && !mouse_right_hold) 
-        board.brush_tool(mouse_pos.y / scale, mouse_pos.x / scale, brush_size, brush_element);
-    
-    if(mouse_right_hold && !mouse_left_hold)
+    if(mouse_left_hold && !mouse_right_hold)
     {
-        board.brush_tool(mouse_pos.y / scale, mouse_pos.x / scale, brush_size, Board::ElementType::EMPTY);
+        board.spawn_elements(mouse_pos.y / scale, mouse_pos.x / scale, brush.get_size(), brush.get_element());
     }
+
+    if(!mouse_left_hold && mouse_right_hold)
+    {
+        board.spawn_elements(mouse_pos.y / scale, mouse_pos.x / scale, brush.get_size(), ElementType::EMPTY);
+    }
+
 }
 
 void Game::event()
 {
-    while(std::optional event = window.pollEvent())
+    while(std::optional event = window.pollEvent()) 
     {
         if(event->is<sf::Event::Closed>())
         {
@@ -143,26 +134,26 @@ void Game::event()
         {
             if(left_shift_down)
             {
-                if(mouse->delta > 0) brush_element++;
-                else brush_element--;
-
-                //Fire is always last element
-                if(brush_element > Board::ElementType::FIRE) brush_element = Board::ElementType::SAND;
-
-                //Sand is first element to draw by brush
-                if(brush_element < Board::ElementType::SAND) brush_element = Board::ElementType::FIRE;
+                if(mouse->delta > 0)
+                {
+                    brush.change_element(1);
+                } 
+                else if(mouse->delta < 0) 
+                {
+                    brush.change_element(-1);
+                }
 
                 brush_element_text_update();
             }
             else
             {
-                if (mouse->delta > 0 && brush_size < 31)
+                if (mouse->delta > 0 && brush.get_size() < 31)
                 {
-                    brush_size += 2;
+                    brush.change_size(2);
                 }
-                else if (mouse->delta < 0 && brush_size > 5)
+                else if (mouse->delta < 0 && brush.get_size() > 5)
                 {
-                    brush_size -= 2;
+                    brush.change_size(-2);
                 }
 
             }
@@ -172,6 +163,7 @@ void Game::event()
 
 void Game::brush_element_text_update()
 {
+    int brush_element = static_cast<int>(brush.get_element());
     brush_element_text.setString(brush_element_text_data_vector[brush_element].element_name);
     brush_element_text.setFillColor(brush_element_text_data_vector[brush_element].color);
 }
@@ -180,8 +172,9 @@ void Game::render()
 {
     window.clear();
 
+    //Draw
     board_draw();
-    window.draw(brush_outline);
+    brush.draw_outline(window);
     window.draw(brush_element_text);
 
     window.display();

@@ -3,6 +3,7 @@
 #include <SFML/Window.hpp>
 
 #include "Board.hpp"
+#include "Brush.hpp"
 
 #include <iostream>
 #include <string>
@@ -13,8 +14,9 @@ private:
     int scale;
     sf::Vector2u simulation_size;
 
-    //BoardS
     Board board;
+
+    Brush brush;
 
     //Render
     sf::Image image;
@@ -22,24 +24,18 @@ private:
     sf::Sprite sprite;
 
     //UI
-    sf::RectangleShape brush_outline;
     sf::Font pixel_font;
     sf::Text brush_element_text;
 
-    //Window
     sf::RenderWindow window;
 
-    //Brush
+    //Brush Text
     struct BrushelementTextData
     {
         std::string element_name;
         sf::Color color;
     };
     std::vector<BrushelementTextData> brush_element_text_data_vector;
-
-    int brush_size;
-    int brush_element;
-
 
     //Variables
     bool mouse_left_hold;

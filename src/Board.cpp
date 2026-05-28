@@ -293,7 +293,7 @@ bool Board::in_bounds(int new_y, int new_x)
 }
 
 
-void Board::brush_tool(int y, int x, int brush_size, int tool)
+void Board::spawn_elements(int y, int x, int brush_size, ElementType element)
 {
 
     for(int i = -brush_size / 2; i <= brush_size / 2; i++)
@@ -309,7 +309,7 @@ void Board::brush_tool(int y, int x, int brush_size, int tool)
 
 
             // Empty
-            if(tool == ElementType::EMPTY)
+            if(element == ElementType::EMPTY)
             {
                 cell = empty_cell();
                 continue;
@@ -319,13 +319,13 @@ void Board::brush_tool(int y, int x, int brush_size, int tool)
 
             //SOLID -> WHOLE SQUARE
 
-            if(tool == ElementType::STONE)
+            if(element == ElementType::STONE)
             {
                 cell = stone_cell();
                 continue;
             }
 
-            if(tool == ElementType::WOOD)
+            if(element == ElementType::WOOD)
             {
                 cell = wood_cell();
                 continue;
@@ -334,55 +334,55 @@ void Board::brush_tool(int y, int x, int brush_size, int tool)
             //ELSE THEN SOLID -> RANDOM
             if(dist_1_100(gen) != 1) continue;
 
-            if(tool == ElementType::SAND)
+            if(element == ElementType::SAND)
             {
                 cell = sand_cell();
                 continue;
             }
 
-            if(tool == ElementType::ASH)
+            if(element == ElementType::ASH)
             {
                 cell = ash_cell();
                 continue;
             }
 
-            if(tool == ElementType::GUNPOWDER)
+            if(element == ElementType::GUNPOWDER)
             {
                 cell = gunpowder_cell();
                 continue;
             }
 
-            if(tool == ElementType::WATER)
+            if(element == ElementType::WATER)
             {
                 cell = water_cell();
                 continue;
             }
 
-            if(tool == ElementType::GASOLINE)
+            if(element == ElementType::GASOLINE)
             {
                 cell = gasoline_cell();
                 continue;
             }
 
-            if(tool == ElementType::ACID)
+            if(element == ElementType::ACID)
             {
                 cell = acid_cell();
                 continue;
             }
 
-            if(tool == ElementType::HYDROGEN)
+            if(element == ElementType::HYDROGEN)
             {
                 cell = hydrogen_cell();
                 continue;
             }
 
-            if(tool == ElementType::SMOKE)
+            if(element == ElementType::SMOKE)
             {
                 cell = smoke_cell();
                 continue;
             }
 
-            if(tool == ElementType::FIRE)
+            if(element == ElementType::FIRE)
             {
                 cell = fire_cell();
                 continue;

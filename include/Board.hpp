@@ -7,6 +7,8 @@
 #include <random>
 #include <iostream>
 
+#include "ElementType.hpp"
+
 class Board
 {
 private:
@@ -20,8 +22,6 @@ private:
     std::uniform_int_distribution<> dist_0_2;
 
     int side_to_update;
-
-    int element_type_tool;
 
     //Functions
 
@@ -46,22 +46,6 @@ private:
 
 public:
     //Variables
-
-    enum ElementType
-    {
-        EMPTY = 0,
-        SAND,
-        ASH,
-        GUNPOWDER,
-        STONE,
-        WOOD,
-        WATER,
-        GASOLINE,
-        ACID,
-        HYDROGEN,
-        SMOKE,
-        FIRE,
-    };
     struct GridCell
     {
         ElementType elementType;
@@ -84,7 +68,7 @@ public:
 
     //Functions
     void grid_update();
-    void brush_tool(int y, int x, int brush_size, int tool);
+    void spawn_elements(int y, int x, int brush_size, ElementType element);
     void clear_board();
 
     //EMPTY
